@@ -10,7 +10,7 @@ import { useState } from "react"
 
 const currentAssignments = [
   {
-    id: 1,
+    id: 3,
     title: "Assignment 3: Control Structures",
     description: "Implement conditional statements and decision-making logic",
     dueDate: "2024-02-05",
@@ -34,7 +34,7 @@ const currentAssignments = [
     },
   },
   {
-    id: 2,
+    id: 4,
     title: "Assignment 4: Loop Exercises",
     description: "Practice with for loops, while loops, and nested iterations",
     dueDate: "2024-02-12",
