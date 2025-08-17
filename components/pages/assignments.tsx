@@ -202,50 +202,8 @@ for score in test_scores:
   },
 ]
 
-function buildClaudePrompt(assignment: any, isGraded = false) {
-  const basePrompt = `Help me with ${assignment.title}`
-
-  if (isGraded) {
-    return `${basePrompt}
-
-Assignment Details:
-- Title: ${assignment.title}
-- Instructions: ${assignment.instructions}
-- My Score: ${assignment.score}/${assignment.totalPoints} (${assignment.grade})
-- Submission Date: ${assignment.submittedDate}
-
-Rubric Breakdown:
-${assignment.feedback.criteria
-  .map((criterion: any) => `- ${criterion.name}: ${criterion.earned}/${criterion.total} - ${criterion.feedback}`)
-  .join("\n")}
-
-Overall Instructor Feedback: ${assignment.feedback.overall}
-
-My Code:
-${assignment.codeExample}
-
-Please help me understand my mistakes and how to improve for future assignments. Focus on the specific issues mentioned in the feedback.`
-  } else {
-    return `${basePrompt}
-
-Assignment Instructions: ${assignment.instructions}
-
-Rubric:
-${assignment.rubric.criteria
-  .map((criterion: any) => `- ${criterion.name} (${criterion.points} points): ${criterion.description}`)
-  .join("\n")}
-
-Due Date: ${assignment.dueDate}
-Points: ${assignment.points}
-
-Please help me understand the requirements and guide me through the implementation step by step.`
-  }
-}
-
-function handleClaudeChat(assignment: any, isGraded = false) {
-  const prompt = buildClaudePrompt(assignment, isGraded)
-  const encodedPrompt = encodeURIComponent(prompt)
-  const claudeUrl = `/claude-chat?prompt=${encodedPrompt}`
+function handleClaudeChat(assignmentId: number) {
+  const claudeUrl = `/claude?assignment_id=${assignmentId}`
   window.open(claudeUrl, "_blank")
 }
 
@@ -263,7 +221,7 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
                 size="sm"
                 variant="outline"
                 className="w-fit mt-2 bg-transparent"
-                onClick={() => handleClaudeChat(assignment, false)}
+                onClick={() => handleClaudeChat(assignment.id)}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Chat with Claude
@@ -340,7 +298,7 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
               size="sm"
               variant="outline"
               className="w-fit mt-2 bg-transparent"
-              onClick={() => handleClaudeChat(assignment, true)}
+              onClick={() => handleClaudeChat(assignment.id)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Chat with Claude

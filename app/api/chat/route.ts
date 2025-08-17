@@ -5,7 +5,7 @@ export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json()
+    const { message, history } = await request.json()
 
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
@@ -38,37 +38,45 @@ export async function POST(request: NextRequest) {
       dangerouslyAllowBrowser: true, // Safe in server-side API route
     })
 
-    console.log("[v0] Sending message to Claude:", message)
+    const messages: Array<{ role: "user" | "assistant"; content: string }> = []
+
+    // Add previous conversation history if it exists
+    if (history && Array.isArray(history)) {
+      messages.push(...history)
+    }
+
+    // Add the current message
+    messages.push({ role: "user", content: message })
+
+    console.log("[v0] Sending conversation to Claude:", messages)
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 1000,
       system: `You are Claude, a helpful AI tutor for CS101 (Introduction to Computer Science). You specialize in helping students learn programming fundamentals, particularly Python.
 
 Your role:
-- Help students understand programming concepts clearly
-- Provide code examples and explanations
-- Debug code issues and explain errors
+- Help students understand programming concepts clearly and step-by-step
+- Ask guiding questions to help students think through problems
+- Provide hints and explanations rather than complete solutions
+- Debug code issues and explain errors in detail
 - Encourage good programming practices
-- Be patient and supportive with beginners
+- Be patient, supportive, and encouraging with beginners
 
 Guidelines:
 - Keep explanations clear and beginner-friendly
 - Use practical examples relevant to CS101
 - When showing code, use proper formatting with backticks
-- Encourage students to think through problems
-- If students share code, help them understand what's wrong and why
+- Ask questions to check understanding before moving forward
+- If students share code with errors, help them identify what's wrong and guide them to the solution
+- Focus on teaching concepts, not just giving answers
 - Always be encouraging and positive
+- When helping with graded assignments, focus on understanding mistakes and learning from feedback
 
 Focus areas: Variables, data types, conditionals, loops, functions, basic debugging, and fundamental programming concepts.`,
-      messages: [
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+      messages: messages,
     })
 
-    console.log("[v0] Claude response received:", JSON.stringify(response, null, 2))
+    console.log("[v0] Claude response received")
 
     // Better error handling for response content
     if (!response || !response.content || !Array.isArray(response.content) || response.content.length === 0) {
@@ -90,8 +98,8 @@ Focus areas: Variables, data types, conditionals, loops, functions, basic debugg
       assistantMessage = firstContent.text
     }
 
-    console.log("[v0] Sending response:", assistantMessage)
-    return NextResponse.json({ message: assistantMessage })
+    console.log("[v0] Sending response")
+    return NextResponse.json({ response: assistantMessage })
   } catch (error) {
     console.error("[v0] Error calling Claude API:", error)
     if (error instanceof Error) {
