@@ -204,7 +204,7 @@ for score in test_scores:
 
 function handleClaudeChat(assignmentId: number) {
   const claudeUrl = `/claude?assignment_id=${assignmentId}`
-  window.open(claudeUrl, "_blank")
+  window.location.href = claudeUrl
 }
 
 function AssignmentCard({ assignment, type }: { assignment: any; type: "current" | "graded" }) {
