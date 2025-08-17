@@ -245,7 +245,7 @@ Please help me understand the requirements and guide me through the implementati
 function handleClaudeChat(assignment: any, isGraded = false) {
   const prompt = buildClaudePrompt(assignment, isGraded)
   const encodedPrompt = encodeURIComponent(prompt)
-  const claudeUrl = `https://claude.ai/chat?q=${encodedPrompt}`
+  const claudeUrl = `/claude-chat?prompt=${encodedPrompt}`
   window.open(claudeUrl, "_blank")
 }
 
@@ -259,6 +259,15 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <CardTitle className="text-lg">{assignment.title}</CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-fit mt-2 bg-transparent"
+                onClick={() => handleClaudeChat(assignment, false)}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Chat with Claude
+              </Button>
               <CardDescription>{assignment.description}</CardDescription>
             </div>
             <Badge
@@ -315,10 +324,6 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
               <FileText className="h-4 w-4 mr-2" />
               {showInstructions ? "Hide Instructions" : "View Assignment Instructions"}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => handleClaudeChat(assignment, false)}>
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Chat with Claude
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -331,6 +336,15 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg">{assignment.title}</CardTitle>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-fit mt-2 bg-transparent"
+              onClick={() => handleClaudeChat(assignment, true)}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Chat with Claude
+            </Button>
             <div className="flex items-center gap-2">
               <Badge variant="outline">Graded</Badge>
               <span className="text-sm text-muted-foreground">
@@ -404,10 +418,6 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
           >
             <Eye className="h-4 w-4 mr-2" />
             {showInstructions ? "Hide Instructions" : "View Assignment Instructions"}
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => handleClaudeChat(assignment, true)}>
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Chat with Claude
           </Button>
         </div>
       </CardContent>
