@@ -251,9 +251,6 @@ ${currentAssignment.rubric.criteria
   .map((criterion: any) => `- ${criterion.name} (${criterion.points} points): ${criterion.description}`)
   .join("\n")}
 
-Due Date: ${currentAssignment.dueDate}
-Points: ${currentAssignment.points}
-
 Please help me understand the requirements. You can ask me a question to help me get to the next step but never provide the next step directly for me and never provide the answer directly. Keep your responses short and ask one question at a time.`
   }
 
@@ -310,11 +307,13 @@ Feel free to ask me anything or use the quick action buttons below to get starte
   const [isTyping, setIsTyping] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const hasInitializedRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (assignmentId) {
+    if (assignmentId && hasInitializedRef.current !== assignmentId) {
+      hasInitializedRef.current = assignmentId
       const prompt = buildClaudePrompt(assignmentId)
-      setInputValue(prompt)
+      handleSendMessage(prompt)
     }
   }, [assignmentId])
 
