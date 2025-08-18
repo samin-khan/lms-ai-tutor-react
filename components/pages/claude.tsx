@@ -422,12 +422,6 @@ Feel free to ask me anything or use the quick action buttons below to get starte
       </div>
 
       <Card className="flex flex-col bg-stone-50 border-stone-200">
-        <CardHeader className="pb-3 flex-shrink-0 bg-stone-50">
-          <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
-            <Image src="/claude-icon.png" alt="Claude AI" width={20} height={20} />
-            Chat with Claude
-          </CardTitle>
-        </CardHeader>
         <CardContent className="flex flex-col gap-4 p-0 bg-stone-50">
           <div className="h-[500px] flex flex-col px-6">
             <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
