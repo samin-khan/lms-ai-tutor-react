@@ -254,7 +254,7 @@ ${currentAssignment.rubric.criteria
 Due Date: ${currentAssignment.dueDate}
 Points: ${currentAssignment.points}
 
-Please help me understand the requirements and guide me through the implementation step by step. Ask me questions to help me think through the problem rather than giving me the complete solution.`
+Please help me understand the requirements. You can ask me a question to help me get to the next step but never provide the next step directly for me and never provide the answer directly. Keep your responses short and ask one question at a time.`
   }
 
   const gradedAssignment = gradedAssignments.find((a) => a.id === assignmentId)
@@ -277,7 +277,7 @@ Overall Instructor Feedback: ${gradedAssignment.feedback.overall}
 My Code:
 ${gradedAssignment.codeExample}
 
-Please help me understand my mistakes and how to improve for future assignments. Focus on the specific issues mentioned in the feedback and ask me questions to help me learn from these errors.`
+Please help me understand my mistakes and how to improve for future assignments. Focus on the specific issues mentioned in the feedback and ask me questions to help me learn from these errors. Never provide the answer directly. Keep your responses short and ask one question at a time.`
   }
 
   return `Help me with Assignment ${assignmentId}
@@ -414,67 +414,6 @@ Feel free to ask me anything or use the quick action buttons below to get starte
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
-              <Bot className="h-5 w-5 text-accent-foreground" />
-            </div>
-            <div>
-              <CardTitle className="font-serif">Claude AI Tutor</CardTitle>
-              <CardDescription>Your personal CS101 programming assistant</CardDescription>
-            </div>
-            <Badge variant="secondary" className="ml-auto">
-              {process.env.NEXT_PUBLIC_VERCEL_ENV ? "Online" : "Demo Mode"}
-            </Badge>
-            {assignmentId && (
-              <Badge variant="outline" className="ml-2">
-                Assignment {assignmentId}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Error Alert */}
-      {error && (
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Help Topics</CardTitle>
-          <CardDescription>Click on a topic to get instant help</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            {quickActions.map((action) => {
-              const Icon = action.icon
-              return (
-                <Button
-                  key={action.id}
-                  variant="outline"
-                  className="justify-start h-auto p-3 bg-transparent"
-                  onClick={() => handleQuickAction(action)}
-                >
-                  <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="text-sm">{action.label}</span>
-                </Button>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Chat Interface */}
       <Card className="flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
@@ -549,6 +488,31 @@ Feel free to ask me anything or use the quick action buttons below to get starte
             <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
               <Send className="h-4 w-4" />
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Help Topics</CardTitle>
+          <CardDescription>Click on a topic to get instant help</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {quickActions.map((action) => {
+              const Icon = action.icon
+              return (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  className="justify-start h-auto p-3 bg-transparent"
+                  onClick={() => handleQuickAction(action)}
+                >
+                  <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="text-sm">{action.label}</span>
+                </Button>
+              )
+            })}
           </div>
         </CardContent>
       </Card>
