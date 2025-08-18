@@ -83,7 +83,7 @@ export function SyllabusPage() {
       <Card>
         <CardHeader>
           <CardTitle className="font-serif text-2xl">CS101: Introduction to Computer Science</CardTitle>
-          <CardDescription>Spring 2024 • 3 Credit Hours</CardDescription>
+          <CardDescription>Spring 2025 • 3 Credit Hours</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">

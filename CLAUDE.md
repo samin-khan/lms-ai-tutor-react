@@ -8,7 +8,7 @@ This is a Next.js LMS (Learning Management System) application for CS101 with in
 
 ## Common Development Commands
 
-```bash
+\`\`\`bash
 # Development
 npm run dev          # Start development server (localhost:3000)
 npm run build        # Build for production
@@ -17,7 +17,7 @@ npm run lint         # Run ESLint
 
 # Package management
 pnpm install         # Install dependencies (uses pnpm)
-```
+\`\`\`
 
 ## Architecture Overview
 
