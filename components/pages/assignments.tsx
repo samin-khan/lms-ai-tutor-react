@@ -202,12 +202,15 @@ for score in test_scores:
   },
 ]
 
-function handleClaudeChat(assignmentId: number) {
-  const claudeUrl = `/claude?assignment_id=${assignmentId}`
-  window.location.href = claudeUrl
+function handleClaudeChat(assignmentId: number, onSectionChange: (section: string, assignmentId?: number) => void) {
+  onSectionChange("claude", assignmentId)
 }
 
-function AssignmentCard({ assignment, type }: { assignment: any; type: "current" | "graded" }) {
+function AssignmentCard({
+  assignment,
+  type,
+  onSectionChange,
+}: { assignment: any; type: "current" | "graded"; onSectionChange: (section: string, assignmentId?: number) => void }) {
   const [showInstructions, setShowInstructions] = useState(false)
 
   if (type === "current") {
@@ -221,7 +224,7 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
                 size="sm"
                 variant="outline"
                 className="w-fit mt-2 bg-transparent"
-                onClick={() => handleClaudeChat(assignment.id)}
+                onClick={() => handleClaudeChat(assignment.id, onSectionChange)}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Chat with Claude
@@ -298,7 +301,7 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
               size="sm"
               variant="outline"
               className="w-fit mt-2 bg-transparent"
-              onClick={() => handleClaudeChat(assignment.id)}
+              onClick={() => handleClaudeChat(assignment.id, onSectionChange)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Chat with Claude
@@ -383,7 +386,9 @@ function AssignmentCard({ assignment, type }: { assignment: any; type: "current"
   )
 }
 
-export function AssignmentsPage() {
+export function AssignmentsPage({
+  onSectionChange,
+}: { onSectionChange?: (section: string, assignmentId?: number) => void }) {
   const completedCount = gradedAssignments.length
   const totalAssignments = currentAssignments.length + gradedAssignments.length
   const averageScore =
@@ -445,7 +450,12 @@ export function AssignmentsPage() {
         <TabsContent value="current" className="space-y-4">
           <div className="grid gap-4">
             {currentAssignments.map((assignment) => (
-              <AssignmentCard key={assignment.id} assignment={assignment} type="current" />
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                type="current"
+                onSectionChange={onSectionChange || (() => {})}
+              />
             ))}
           </div>
         </TabsContent>
@@ -453,7 +463,12 @@ export function AssignmentsPage() {
         <TabsContent value="graded" className="space-y-4">
           <div className="grid gap-4">
             {gradedAssignments.map((assignment) => (
-              <AssignmentCard key={assignment.id} assignment={assignment} type="graded" />
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                type="graded"
+                onSectionChange={onSectionChange || (() => {})}
+              />
             ))}
           </div>
         </TabsContent>
