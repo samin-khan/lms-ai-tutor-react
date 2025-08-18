@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Initializing Anthropic client...")
     const anthropic = new Anthropic({
       apiKey: apiKey,
-      dangerouslyAllowBrowser: true, // Safe in server-side API route
     })
 
     const messages: Array<{ role: "user" | "assistant"; content: string }> = []
