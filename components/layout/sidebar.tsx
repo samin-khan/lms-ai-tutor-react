@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { BookOpen, FileText, GraduationCap, Menu, X } from "lucide-react"
@@ -17,29 +18,44 @@ const navigationItems = [
     label: "Syllabus",
     icon: FileText,
     description: "Course overview and schedule",
+    path: "/",
   },
   {
     id: "assignments",
     label: "Assignments",
     icon: BookOpen,
     description: "Current and graded assignments",
+    path: "/assignments",
   },
   {
     id: "lectures",
     label: "Lectures",
     icon: GraduationCap,
     description: "Week-by-week course content",
+    path: "/lectures",
   },
   {
     id: "claude",
     label: "Claude AI",
-    icon: null, // Using custom Claude icon instead of Bot icon
+    icon: null,
     description: "AI tutoring and Q&A support",
+    path: "/claude",
   },
 ]
 
 export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const getActiveSection = () => {
+    if (pathname === "/assignments") return "assignments"
+    if (pathname === "/lectures") return "lectures"
+    if (pathname === "/claude") return "claude"
+    return "syllabus"
+  }
+
+  const currentActiveSection = getActiveSection()
 
   return (
     <>
@@ -74,7 +90,7 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
           <nav className="flex-1 space-y-2 p-4">
             {navigationItems.map((item) => {
               const Icon = item.icon
-              const isActive = activeSection === item.id
+              const isActive = currentActiveSection === item.id
 
               return (
                 <Button
@@ -86,8 +102,8 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                     isActive && "bg-blue-100 text-blue-800",
                   )}
                   onClick={() => {
-                    onSectionChange(item.id)
-                    setIsCollapsed(true) // Close mobile menu after selection
+                    router.push(item.path)
+                    setIsCollapsed(true)
                   }}
                 >
                   {item.id === "claude" ? (
@@ -103,8 +119,6 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
               )
             })}
           </nav>
-
-
         </div>
       </aside>
 

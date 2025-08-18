@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Calendar, Clock, FileText, CheckCircle, AlertCircle, Eye, MessageCircle } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const currentAssignments = [
   {
@@ -389,6 +389,14 @@ function AssignmentCard({
 export function AssignmentsPage({
   onSectionChange,
 }: { onSectionChange?: (section: string, assignmentId?: number) => void }) {
+  const [activeTab, setActiveTab] = useState("current")
+
+  useEffect(() => {
+    if (window.location.hash === "#graded") {
+      setActiveTab("graded")
+    }
+  }, [])
+
   const completedCount = gradedAssignments.length
   const totalAssignments = currentAssignments.length + gradedAssignments.length
   const averageScore =
@@ -435,7 +443,7 @@ export function AssignmentsPage({
       </div>
 
       {/* Assignment Tabs */}
-      <Tabs defaultValue="current" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="current" className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
@@ -460,7 +468,7 @@ export function AssignmentsPage({
           </div>
         </TabsContent>
 
-        <TabsContent value="graded" className="space-y-4">
+        <TabsContent value="graded" className="space-y-4" id="graded">
           <div className="grid gap-4">
             {gradedAssignments.map((assignment) => (
               <AssignmentCard

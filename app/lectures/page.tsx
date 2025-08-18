@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation"
 import { MainLayout } from "@/components/layout/main-layout"
-import { SyllabusPage } from "@/components/pages/syllabus"
+import { LecturesPage } from "@/components/pages/lectures"
 
-export default function HomePage() {
+export default function LecturesPageRoute() {
   const router = useRouter()
 
   const handleSectionChange = (section: string, assignmentId?: number) => {
@@ -17,8 +17,8 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <MainLayout activeSection="syllabus" onSectionChange={handleSectionChange}>
-        <SyllabusPage />
+      <MainLayout activeSection="lectures" onSectionChange={handleSectionChange}>
+        <LecturesPage />
       </MainLayout>
     </div>
   )
