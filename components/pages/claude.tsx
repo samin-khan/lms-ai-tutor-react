@@ -332,12 +332,20 @@ Feel free to ask me anything or use the quick action buttons below to get starte
 
   const callClaudeAPI = async (message: string): Promise<string> => {
     try {
+      // Convert messages to API format, excluding welcome message
+      const history = messages
+        .filter(msg => msg.id !== "welcome")
+        .map(msg => ({
+          role: msg.type === "user" ? "user" as const : "assistant" as const,
+          content: msg.content
+        }))
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, history }),
       })
 
       if (!response.ok) {
