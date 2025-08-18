@@ -460,7 +460,7 @@ export function AssignmentsPage({
           </div>
         </TabsContent>
 
-        <TabsContent value="graded" className="space-y-4">
+        <TabsContent value="graded" className="space-y-4" id="graded-assignments">
           <div className="grid gap-4">
             {gradedAssignments.map((assignment) => (
               <AssignmentCard
