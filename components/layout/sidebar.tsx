@@ -104,13 +104,7 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="text-center text-xs text-gray-600">
-              <p className="font-medium">Computer Science 101</p>
-              <p className="opacity-70">Introduction to Programming</p>
-            </div>
-          </div>
+
         </div>
       </aside>
 
