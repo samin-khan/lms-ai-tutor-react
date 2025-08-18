@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import "./globals.css"
+import { UsetifulProvider } from "../components/usetiful-provider"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -38,7 +39,10 @@ html {
 }
         `}</style>
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <UsetifulProvider />
+        {children}
+      </body>
     </html>
   )
 }
