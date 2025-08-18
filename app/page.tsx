@@ -9,17 +9,27 @@ import { ClaudePage } from "@/components/pages/claude"
 
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState("syllabus")
+  const [claudeAssignmentId, setClaudeAssignmentId] = useState<number | undefined>(undefined)
+
+  const handleSectionChange = (section: string, assignmentId?: number) => {
+    setActiveSection(section)
+    if (section === "claude" && assignmentId) {
+      setClaudeAssignmentId(assignmentId)
+    } else if (section !== "claude") {
+      setClaudeAssignmentId(undefined)
+    }
+  }
 
   const renderContent = () => {
     switch (activeSection) {
       case "syllabus":
         return <SyllabusPage />
       case "assignments":
-        return <AssignmentsPage />
+        return <AssignmentsPage onSectionChange={handleSectionChange} />
       case "lectures":
         return <LecturesPage />
       case "claude":
-        return <ClaudePage />
+        return <ClaudePage assignmentId={claudeAssignmentId} />
       default:
         return <SyllabusPage />
     }
@@ -27,7 +37,7 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <MainLayout activeSection={activeSection} onSectionChange={setActiveSection}>
+      <MainLayout activeSection={activeSection} onSectionChange={handleSectionChange}>
         {renderContent()}
       </MainLayout>
     </div>
