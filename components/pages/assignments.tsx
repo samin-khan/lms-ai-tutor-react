@@ -389,7 +389,7 @@ function AssignmentCard({
 export function AssignmentsPage({
   onSectionChange,
 }: { onSectionChange?: (section: string, assignmentId?: number) => void }) {
-  const [activeTab, setActiveTab] = useState("current")
+  const [activeTab, setActiveTab] = useState("graded")
 
   useEffect(() => {
     if (window.location.hash === "#graded") {
@@ -445,28 +445,15 @@ export function AssignmentsPage({
       {/* Assignment Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="current" className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            Current Assignments ({currentAssignments.length})
-          </TabsTrigger>
           <TabsTrigger value="graded" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             Graded Assignments ({gradedAssignments.length})
           </TabsTrigger>
+          <TabsTrigger value="current" className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Upcoming Assignments ({currentAssignments.length})
+          </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="current" className="space-y-4">
-          <div className="grid gap-4">
-            {currentAssignments.map((assignment) => (
-              <AssignmentCard
-                key={assignment.id}
-                assignment={assignment}
-                type="current"
-                onSectionChange={onSectionChange || (() => {})}
-              />
-            ))}
-          </div>
-        </TabsContent>
 
         <TabsContent value="graded" className="space-y-4" id="graded">
           <div className="grid gap-4">
@@ -475,6 +462,19 @@ export function AssignmentsPage({
                 key={assignment.id}
                 assignment={assignment}
                 type="graded"
+                onSectionChange={onSectionChange || (() => {})}
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="current" className="space-y-4">
+          <div className="grid gap-4">
+            {currentAssignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                type="current"
                 onSectionChange={onSectionChange || (() => {})}
               />
             ))}
