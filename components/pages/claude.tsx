@@ -6,9 +6,9 @@ import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Bot, User, Send, Lightbulb, Code, HelpCircle, BookOpen, Zap, AlertCircle } from "lucide-react"
+import { User, Send, Lightbulb, Code, HelpCircle, BookOpen, Zap } from "lucide-react"
+import Image from "next/image"
 
 interface Message {
   id: string
@@ -413,10 +413,21 @@ Feel free to ask me anything or use the quick action buttons below to get starte
 
   return (
     <div className="space-y-6">
+      <div className="text-center py-6">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Image src="/claude-icon.png" alt="Claude AI" width={32} height={32} />
+          <h1 className="text-3xl font-medium text-gray-800">Good afternoon, Student</h1>
+        </div>
+        <p className="text-gray-600 text-lg">How can I help you today?</p>
+      </div>
+
       {/* Chat Interface */}
       <Card className="flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg">Chat with Claude</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Image src="/claude-icon.png" alt="Claude AI" width={20} height={20} />
+            Chat with Claude
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 p-0">
           <div className="h-[500px] flex flex-col px-6">
@@ -428,15 +439,13 @@ Feel free to ask me anything or use the quick action buttons below to get starte
                     className={`flex gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {message.type === "assistant" && (
-                      <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-4 w-4 text-accent-foreground" />
+                      <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                        <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
                       </div>
                     )}
                     <div
                       className={`max-w-[80%] rounded-lg p-3 ${
-                        message.type === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
+                        message.type === "user" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       <div className="text-sm leading-relaxed whitespace-pre-line">{message.content}</div>
@@ -445,18 +454,18 @@ Feel free to ask me anything or use the quick action buttons below to get starte
                       </div>
                     </div>
                     {message.type === "user" && (
-                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-secondary-foreground" />
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-gray-600" />
                       </div>
                     )}
                   </div>
                 ))}
                 {isTyping && (
                   <div className="flex gap-3 justify-start">
-                    <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-4 w-4 text-accent-foreground" />
+                    <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
                     </div>
-                    <div className="bg-muted text-muted-foreground rounded-lg p-3">
+                    <div className="bg-gray-100 text-gray-800 rounded-lg p-3">
                       <div className="flex items-center gap-1">
                         <div className="h-2 w-2 bg-current rounded-full animate-bounce"></div>
                         <div

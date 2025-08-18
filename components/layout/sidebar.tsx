@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { BookOpen, FileText, GraduationCap, Bot, Menu, X } from "lucide-react"
+import { BookOpen, FileText, GraduationCap, Menu, X } from "lucide-react"
+import Image from "next/image"
 
 interface SidebarProps {
   activeSection: string
@@ -32,7 +33,7 @@ const navigationItems = [
   {
     id: "claude",
     label: "Claude AI",
-    icon: Bot,
+    icon: null, // Using custom Claude icon instead of Bot icon
     description: "AI tutoring and Q&A support",
   },
 ]
@@ -55,15 +56,18 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-40 h-screen w-64 bg-gray-50 border-r border-gray-200 transition-transform duration-300 ease-in-out",
           "md:translate-x-0",
           isCollapsed ? "-translate-x-full" : "translate-x-0",
         )}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-16 items-center justify-center border-b border-sidebar-border px-6">
-            <h1 className="font-serif text-xl font-bold text-sidebar-foreground">CS101</h1>
+          <div className="flex h-16 items-center justify-center border-b border-gray-200 px-6">
+            <div className="text-center">
+              <h1 className="font-serif text-xl font-bold text-gray-800">CS101</h1>
+              <p className="text-sm text-gray-600 mt-1">Introduction to Programming</p>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -78,15 +82,19 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                   variant="ghost"
                   className={cn(
                     "w-full justify-start gap-3 h-12 px-3 text-left",
-                    "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
+                    "text-blue-600 hover:bg-blue-50 hover:text-blue-700",
+                    isActive && "bg-blue-100 text-blue-800",
                   )}
                   onClick={() => {
                     onSectionChange(item.id)
                     setIsCollapsed(true) // Close mobile menu after selection
                   }}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  {item.id === "claude" ? (
+                    <Image src="/claude-icon.png" alt="Claude AI" width={20} height={20} className="flex-shrink-0" />
+                  ) : (
+                    Icon && <Icon className="h-5 w-5 flex-shrink-0" />
+                  )}
                   <div className="flex flex-col items-start">
                     <span className="font-medium">{item.label}</span>
                     <span className="text-xs opacity-70">{item.description}</span>
@@ -97,8 +105,8 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-sidebar-border p-4">
-            <div className="text-center text-xs text-sidebar-primary">
+          <div className="border-t border-gray-200 p-4">
+            <div className="text-center text-xs text-gray-600">
               <p className="font-medium">Computer Science 101</p>
               <p className="opacity-70">Introduction to Programming</p>
             </div>
