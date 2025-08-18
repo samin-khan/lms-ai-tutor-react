@@ -7,7 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Send, Lightbulb, Code, HelpCircle, BookOpen, Zap } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Send, Lightbulb, Code, HelpCircle, BookOpen, Zap, ChevronDown, Check } from "lucide-react"
 import Image from "next/image"
 
 interface Message {
@@ -17,6 +19,30 @@ interface Message {
   timestamp: Date
   topic?: string
 }
+
+interface ModelOption {
+  id: string
+  name: string
+  description: string
+}
+
+const modelOptions: ModelOption[] = [
+  {
+    id: "claude-sonnet-4-0",
+    name: "Claude Sonnet 4",
+    description: "Smart, efficient model for everyday use"
+  },
+  {
+    id: "claude-opus-4-1",
+    name: "Claude Opus 4.1", 
+    description: "Powerful, large model for complex challenges"
+  },
+  {
+    id: "claude-3-5-haiku-latest",
+    name: "Claude Haiku 3.5",
+    description: "Fastest model for daily tasks"
+  }
+]
 
 const quickActions = [
   {
@@ -283,6 +309,7 @@ I need assistance with this assignment. Please ask me questions to understand wh
 }
 
 export function ClaudePage({ assignmentId }: { assignmentId?: number }) {
+  const [selectedModel, setSelectedModel] = useState("claude-sonnet-4-0")
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -345,7 +372,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, history }),
+        body: JSON.stringify({ message, history, model: selectedModel }),
       })
 
       if (!response.ok) {
@@ -503,6 +530,31 @@ Feel free to ask me anything or use the quick action buttons below to get starte
               className="flex-1 bg-white border-stone-300"
               disabled={isTyping}
             />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="bg-white border-stone-300">
+                  {modelOptions.find(m => m.id === selectedModel)?.name || "Claude Sonnet 4"}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                {modelOptions.map((model) => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    onClick={() => setSelectedModel(model.id)}
+                    className="flex items-center justify-between p-3 cursor-pointer"
+                  >
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">{model.name}</div>
+                      <div className="text-sm text-gray-600">{model.description}</div>
+                    </div>
+                    {selectedModel === model.id && (
+                      <Check className="h-4 w-4 text-blue-600" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
               <Send className="h-4 w-4" />
             </Button>

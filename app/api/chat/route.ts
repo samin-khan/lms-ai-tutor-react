@@ -5,7 +5,7 @@ export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, history } = await request.json()
+    const { message, history, model } = await request.json()
 
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Sending conversation to Claude:", messages)
     const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: model || "claude-sonnet-4-0",
       max_tokens: 1000,
       system: `You are Claude, a helpful AI tutor for CS101 (Introduction to Computer Science). You specialize in helping students learn programming fundamentals, particularly Python.
 
