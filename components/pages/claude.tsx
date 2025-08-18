@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Send, Lightbulb, Code, HelpCircle, BookOpen, Zap, ChevronDown, Check } from "lucide-react"
+import { Send, Code, BookOpen, Zap, ChevronDown, Check, BarChart3, FileText, GraduationCap } from "lucide-react"
 import Image from "next/image"
 
 interface Message {
@@ -52,28 +52,16 @@ const quickActions = [
     prompt: "Can you explain variables and data types in Python with examples?",
   },
   {
-    id: "conditionals",
-    label: "If Statements",
-    icon: HelpCircle,
-    prompt: "I'm having trouble with if/else statements. Can you help me understand them?",
-  },
-  {
-    id: "loops",
-    label: "Loops",
-    icon: Zap,
-    prompt: "How do for loops and while loops work in Python?",
-  },
-  {
     id: "functions",
     label: "Functions",
     icon: BookOpen,
     prompt: "Can you explain how to create and use functions in Python?",
   },
   {
-    id: "debugging",
-    label: "Debugging Help",
-    icon: Lightbulb,
-    prompt: "My code isn't working. Can you help me debug it?",
+    id: "loops",
+    label: "Loops",
+    icon: Zap,
+    prompt: "How do for loops and while loops work in Python?",
   },
 ]
 
@@ -521,7 +509,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
             </ScrollArea>
           </div>
 
-          <div className="flex gap-2 px-6 pb-6 flex-shrink-0">
+          <div className="flex gap-2 px-6 pb-4 flex-shrink-0">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -559,26 +547,18 @@ Feel free to ask me anything or use the quick action buttons below to get starte
               <Send className="h-4 w-4" />
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Help Topics</CardTitle>
-          <CardDescription>Click on a topic to get instant help</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+          
+          <div className="flex gap-2 px-6 pb-6 flex-shrink-0">
             {quickActions.map((action) => {
               const Icon = action.icon
               return (
                 <Button
                   key={action.id}
                   variant="outline"
-                  className="justify-start h-auto p-3 bg-transparent"
+                  className="flex items-center gap-2 bg-white border-stone-300 text-gray-700 hover:bg-gray-50"
                   onClick={() => handleQuickAction(action)}
                 >
-                  <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <Icon className="h-4 w-4" />
                   <span className="text-sm">{action.label}</span>
                 </Button>
               )
@@ -586,6 +566,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
           </div>
         </CardContent>
       </Card>
+
     </div>
   )
 }
