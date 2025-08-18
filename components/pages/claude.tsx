@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { User, Send, Lightbulb, Code, HelpCircle, BookOpen, Zap } from "lucide-react"
+import { Send, Lightbulb, Code, HelpCircle, BookOpen, Zap } from "lucide-react"
 import Image from "next/image"
 
 interface Message {
@@ -421,59 +421,67 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         <p className="text-gray-600 text-lg">How can I help you today?</p>
       </div>
 
-      {/* Chat Interface */}
-      <Card className="flex flex-col">
-        <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg flex items-center gap-2">
+      <Card className="flex flex-col bg-stone-50 border-stone-200">
+        <CardHeader className="pb-3 flex-shrink-0 bg-stone-50">
+          <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
             <Image src="/claude-icon.png" alt="Claude AI" width={20} height={20} />
             Chat with Claude
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4 p-0">
+        <CardContent className="flex flex-col gap-4 p-0 bg-stone-50">
           <div className="h-[500px] flex flex-col px-6">
             <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
               <div className="space-y-4 py-4">
                 {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    {message.type === "assistant" && (
-                      <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                        <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.type === "user" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      <div className="text-sm leading-relaxed whitespace-pre-line">{message.content}</div>
-                      <div className="text-xs opacity-70 mt-2">
-                        {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </div>
-                    </div>
-                    {message.type === "user" && (
-                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-gray-600" />
-                      </div>
+                  <div key={message.id} className="flex gap-3 items-start">
+                    {message.type === "user" ? (
+                      <>
+                        <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-sm font-medium">SK</span>
+                        </div>
+                        <div className="bg-stone-200 text-gray-800 rounded-2xl px-4 py-2 max-w-[70%]">
+                          <div className="text-sm leading-relaxed whitespace-pre-line">{message.content}</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-1">
+                          <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-line max-w-none">
+                            {message.content}
+                          </div>
+                          {message.type === "assistant" && message.id !== "welcome" && (
+                            <div className="mt-4">
+                              <Image
+                                src="/claude-icon.png"
+                                alt="Claude AI"
+                                width={24}
+                                height={24}
+                                className="opacity-60"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 ))}
                 {isTyping && (
-                  <div className="flex gap-3 justify-start">
+                  <div className="flex gap-3 items-start">
                     <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                       <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
                     </div>
-                    <div className="bg-gray-100 text-gray-800 rounded-lg p-3">
+                    <div className="flex-1">
                       <div className="flex items-center gap-1">
-                        <div className="h-2 w-2 bg-current rounded-full animate-bounce"></div>
+                        <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div
-                          className="h-2 w-2 bg-current rounded-full animate-bounce"
+                          className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.1s" }}
                         ></div>
                         <div
-                          className="h-2 w-2 bg-current rounded-full animate-bounce"
+                          className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.2s" }}
                         ></div>
                       </div>
@@ -490,7 +498,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything about CS101..."
-              className="flex-1"
+              className="flex-1 bg-white border-stone-300"
               disabled={isTyping}
             />
             <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
