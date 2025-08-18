@@ -351,7 +351,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         throw new Error(data.error)
       }
 
-      return data.message
+      return data.response
     } catch (error) {
       console.error("Error calling Claude API:", error)
       throw error
