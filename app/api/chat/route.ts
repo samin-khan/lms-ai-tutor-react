@@ -41,6 +41,13 @@ Level 4: Unconscious Competence
 	•	This arguably gives rise to the need for long-standing unconscious competence to be checked periodically against new standards
 `
 
+export const syllabus_learning_objectives = `
+- Understand fundamental programming concepts and terminology</span>
+- Write, debug, and test simple programs using proper programming practices</span>
+- Apply problem-solving strategies to break down complex problems</span>
+- Demonstrate understanding of object-oriented programming principles</span>
+`
+
 export async function POST(request: NextRequest) {
   try {
     const { message, history, model } = await request.json()
