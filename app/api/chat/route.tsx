@@ -60,7 +60,7 @@ ${CONSCIOUSNESS_COMPETENCE_LEVELS}
 
 CRITICAL INSTRUCTIONS FOR COMPETENCE ASSESSMENT:
 Before responding to any user message, you must internally classify their last message as one of these 4 levels:
-- Level 1: Unconscious Incompetence (Beginner) - Unaware of skill deficiency
+- Level 1: Unconscious Incompetence - Unaware of skill deficiency
 - Level 2: Conscious Incompetence - Aware of deficiency, ready to learn  
 - Level 3: Conscious Competence - Can perform with concentration
 - Level 4: Unconscious Competence - Skill is second nature
@@ -97,13 +97,13 @@ ${CONSCIOUSNESS_COMPETENCE_LEVELS}
 
 CLASSIFICATION TASK:
 Analyze the user's message and classify it as ONE of these 4 levels:
-- Level 1: Unconscious Incompetence (Beginner) - Unaware of skill deficiency
+- Level 1: Unconscious Incompetence - Unaware of skill deficiency
 - Level 2: Conscious Incompetence - Aware of deficiency, ready to learn  
 - Level 3: Conscious Competence - Can perform with concentration
 - Level 4: Unconscious Competence - Skill is second nature
 
 RESPONSE FORMAT:
-Respond with ONLY the level number and name, like: "Level 2: Conscious Incompetence (Beginner)"
+Respond with ONLY the level number and name
 Do not provide any explanation or additional text.`
 
 // Build enhanced system prompt with classification history from messages
