@@ -3,6 +3,44 @@ import Anthropic from "@anthropic-ai/sdk"
 
 export const runtime = "nodejs"
 
+export const CONSCIOUSNESS_COMPETENCE_LEVELS = `
+Level 1: Unconscious Incompetence
+	•	The person is not aware of the existence or relevance of the skill area
+	•	The person is not aware that they have a particular deficiency in the area concerned
+	•	The person might deny the relevance or usefulness of the new skill
+	•	The person must become conscious of their incompetence before development of the new skill or learning can begin
+	•	The aim of the trainee/learner and the trainer/teacher is to move the person into the “conscious incompetence” stage, by demonstrating the skill or ability and the benefit that it will bring to the person's effectiveness
+
+⸻
+
+Level 2: Conscious Incompetence
+	•	The person becomes aware of the existence and relevance of the skill
+	•	The person is aware of their deficiency in this area, ideally by attempting or trying to use the skill
+	•	The person realizes that by improving their skill or ability in this area, their effectiveness will improve
+	•	Ideally the person has a measure of the extent of their deficiency in the relevant skill, and a measure of what level of skill is required for their own competence
+	•	The person ideally makes a commitment to learn and practice the new skill, and to move to the “conscious competence” stage
+
+⸻
+
+Level 3: Conscious Competence
+	•	The person achieves “conscious competence” in a skill when they can perform it reliably at will
+	•	The person will need to concentrate and think in order to perform the skill
+	•	The person can perform the skill without assistance
+	•	The person will not reliably perform the skill unless thinking about it - the skill is not yet “second nature” or “automatic”
+	•	The person should be able to demonstrate the skill to another, but is unlikely to be able to teach it well to another person
+	•	The person should ideally continue to practice the new skill, and if appropriate commit to becoming “unconsciously competent” at the new skill
+	•	Practice is the single most effective way to move from stage 3 to stage 4
+
+⸻
+
+Level 4: Unconscious Competence
+	•	The skill becomes so practiced that it enters the unconscious parts of the brain - it becomes “second nature”
+	•	Common examples are driving, sports activities, typing, manual dexterity tasks, listening and communicating
+	•	It becomes possible for certain skills to be performed while doing something else (e.g., knitting while reading a book)
+	•	The person might now be able to teach others in the skill concerned, although after some time of being unconsciously competent the person might actually have difficulty in explaining exactly how they do it - the skill has become largely instinctual
+	•	This arguably gives rise to the need for long-standing unconscious competence to be checked periodically against new standards
+`
+
 export async function POST(request: NextRequest) {
   try {
     const { message, history, model } = await request.json()
@@ -71,7 +109,8 @@ Guidelines:
 - Always be encouraging and positive
 - When helping with graded assignments, focus on understanding mistakes and learning from feedback
 
-Focus areas: Variables, data types, conditionals, loops, functions, basic debugging, and fundamental programming concepts.`,
+Focus areas: Variables, data types, conditionals, loops, functions, basic debugging, and fundamental programming concepts.
+`,
       messages: messages,
     })
 
