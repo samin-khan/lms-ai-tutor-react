@@ -80,10 +80,11 @@ ${COURSE_SPECIFIC_TUTOR_GUIDELINES}
 
 Focus areas: ${COURSE_FOCUS_AREAS}`
 
-// Interface for storing classification data internally
-interface ClassificationData {
-  message: string
-  competenceLevel: string
+// Enhanced message interface with competence level
+interface EnhancedMessage {
+  role: "user" | "assistant"
+  content: string
+  competenceLevel?: string
 }
 
 // System prompt for competence level classification only
@@ -105,14 +106,19 @@ RESPONSE FORMAT:
 Respond with ONLY the level number and name, like: "Level 2: Conscious Incompetence (Beginner)"
 Do not provide any explanation or additional text.`
 
-// Build enhanced system prompt with classification history
-function buildEnhancedSystemPrompt(classifications: ClassificationData[]): string {
+// Build enhanced system prompt with classification history from messages
+function buildEnhancedSystemPrompt(enhancedHistory: EnhancedMessage[]): string {
   let classificationContext = ""
   
-  if (classifications.length > 0) {
+  // Extract user messages with competence levels
+  const userMessagesWithClassifications = enhancedHistory.filter(msg => 
+    msg.role === "user" && msg.competenceLevel
+  )
+  
+  if (userMessagesWithClassifications.length > 0) {
     classificationContext = "\n\nSTUDENT COMPETENCE LEVEL HISTORY:\n"
-    classifications.forEach((item, index) => {
-      classificationContext += `Message ${index + 1}: "${item.message.substring(0, 50)}${item.message.length > 50 ? '...' : ''}" - ${item.competenceLevel}\n`
+    userMessagesWithClassifications.forEach((msg, index) => {
+      classificationContext += `Message ${index + 1}: "${msg.content.substring(0, 1000)}${msg.content.length > 1000 ? '...' : ''}" - ${msg.competenceLevel}\n`
     })
     classificationContext += "\nUse this competence level history to inform your teaching approach in your next response. Respond in such a way that it helps the user advance to the next level. Do not expect the user to advance from level 1 to 2 to 3 in a matter of 3 conversation turns. It make take a few back and forths for a user to develop within a given level, even going back a level at times. If the user is at level 4, ask them questions that require applying the concepts of this course into domains further and further away from the course's domain. This is known as developing the skill of 'short transfer' to 'far transfer' which helps learners grow their mastery over a domain by applying it further and further outside of the classroom."
   }
@@ -154,50 +160,15 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     })
 
-    // Store classification history internally (not sent to frontend)
-    const classificationHistory: ClassificationData[] = []
-    
-    // Extract previous classifications from history if they exist
-    // We need to classify all previous user messages to build the full context
+    // Convert history to enhanced format (preserving any existing classifications)
+    let enhancedHistory: EnhancedMessage[] = []
     if (history && Array.isArray(history)) {
       console.log("[CHAT] Previous conversation history length:", history.length)
-      
-      // Classify all previous user messages to rebuild the classification history
-      for (const msg of history) {
-        if (msg.role === "user") {
-          console.log("[CHAT] Re-classifying previous user message:", msg.content.substring(0, 50) + "...")
-          
-          const prevClassificationMessages = [{ role: "user" as const, content: msg.content }]
-          
-          try {
-            const prevClassificationResponse = await anthropic.messages.create({
-              model: "claude-3-5-haiku-latest", // This classification should be fast since it's only used to build the classification history
-              max_tokens: 50,
-              system: CLASSIFICATION_SYSTEM_PROMPT,
-              messages: prevClassificationMessages,
-            })
-
-            let prevCompetenceLevel = "Level 2: Conscious Incompetence" // Default fallback
-            if (prevClassificationResponse?.content?.[0]?.type === "text" && prevClassificationResponse.content[0].text) {
-              prevCompetenceLevel = prevClassificationResponse.content[0].text.trim()
-            }
-
-            classificationHistory.push({
-              message: msg.content,
-              competenceLevel: prevCompetenceLevel
-            })
-            
-            console.log("[CHAT] Previous message classified as:", prevCompetenceLevel)
-          } catch (error) {
-            console.error("[CHAT] Error classifying previous message:", error)
-            // Add with default classification if error occurs
-            classificationHistory.push({
-              message: msg.content,
-              competenceLevel: "unknown"
-            })
-          }
-        }
-      }
+      enhancedHistory = history.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        competenceLevel: msg.competenceLevel // Preserve existing classifications
+      }))
     }
 
     // PHASE 1: Classify the current user message
@@ -220,32 +191,29 @@ export async function POST(request: NextRequest) {
 
     console.log("[CHAT] Current message classified as:", competenceLevel)
 
-    // Add current message classification to history
-    classificationHistory.push({
-      message: message,
+    // Add current message with classification to enhanced history
+    enhancedHistory.push({
+      role: "user",
+      content: message,
       competenceLevel: competenceLevel
     })
 
-    console.log("[CHAT] Full classification history:")
-    classificationHistory.forEach((item, index) => {
-      console.log(`  ${index + 1}. "${item.message.substring(0, 40)}${item.message.length > 40 ? '...' : ''}" -> ${item.competenceLevel}`)
+    console.log("[CHAT] Enhanced history with classifications:")
+    enhancedHistory.filter(msg => msg.role === "user").forEach((msg, index) => {
+      console.log(`  ${index + 1}. "${msg.content.substring(0, 40)}${msg.content.length > 40 ? '...' : ''}" -> ${msg.competenceLevel || 'not classified'}`)
     })
 
     // PHASE 2: Generate response using enhanced system prompt with classification context
     console.log("[CHAT] PHASE 2: Generating response with classification context")
     
-    const messages: Array<{ role: "user" | "assistant"; content: string }> = []
-
-    // Add previous conversation history if it exists
-    if (history && Array.isArray(history)) {
-      messages.push(...history)
-    }
-
-    // Add the current message
-    messages.push({ role: "user", content: message })
+    // Convert enhanced history to standard message format for API
+    const messages = enhancedHistory.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }))
 
     // Build enhanced system prompt with classification history
-    const enhancedSystemPrompt = buildEnhancedSystemPrompt(classificationHistory)
+    const enhancedSystemPrompt = buildEnhancedSystemPrompt(enhancedHistory)
     
     console.log("[CHAT] Enhanced system prompt with classifications:")
     console.log("=".repeat(80))
@@ -285,9 +253,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[CHAT] Final assistant response:", assistantMessage)
-    console.log("[CHAT] Sending response to frontend (competence level NOT included)")
+    console.log("[CHAT] Sending response to frontend with competence level for current message")
     
-    return NextResponse.json({ response: assistantMessage })
+    return NextResponse.json({ 
+      response: assistantMessage,
+      competenceLevel: competenceLevel // Include competence level for frontend to store
+    })
   } catch (error) {
     console.error("[CHAT] Error calling Claude API:", error)
     if (error instanceof Error) {
