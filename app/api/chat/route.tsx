@@ -48,8 +48,7 @@ export const SYLLABUS_LEARNING_OBJECTIVES = `
 - Apply problem-solving strategies to break down complex problems</span>
 - Demonstrate understanding of object-oriented programming principles</span>`
 export const COURSE_NAME = "CS101 (Introduction to Computer Science"
-export const COURSE_SPECIFIC_TUTOR_GUIDELINES = `
-- When showing code, use proper formatting with backticks
+export const COURSE_SPECIFIC_TUTOR_GUIDELINES = `- When showing code, use proper formatting with backticks
 - If students share code with errors, help them identify what's wrong. Guide them to the next step with a question but never give the next step or full solution away. Focus on teaching concepts, never give away answers.`
 export const COURSE_FOCUS_AREAS = `Variables, data types, conditionals, loops, functions, basic debugging, and fundamental programming concepts.`
 
@@ -66,8 +65,6 @@ Before responding to any user message, you must internally classify their last m
 - Level 3: Conscious Competence - Can perform with concentration
 - Level 4: Unconscious Competence - Skill is second nature
 
-Store this classification in your internal processing (e.g., "User Level: Level 2: Conscious Incompetence") but NEVER reveal this classification to the user in your response.
-
 ADAPTIVE RESPONSE STRATEGY:
 - If Level 1, 2, or 3: Help the user advance to the next level through targeted questions and guidance. Users may need multiple interactions to develop within a level before advancing.
 - If Level 4: Ask questions that require applying course concepts to domains increasingly distant from the classroom (developing "short transfer" to "far transfer" skills).
@@ -83,6 +80,46 @@ ${COURSE_SPECIFIC_TUTOR_GUIDELINES}
 
 Focus areas: ${COURSE_FOCUS_AREAS}`
 
+// Interface for storing classification data internally
+interface ClassificationData {
+  message: string
+  competenceLevel: string
+}
+
+// System prompt for competence level classification only
+const CLASSIFICATION_SYSTEM_PROMPT = `You are an educational assessment AI. Your only job is to classify a student's message based on their consciousness competence level for ${COURSE_NAME}, 
+which has the following learning objectives:
+${SYLLABUS_LEARNING_OBJECTIVES}
+
+CONSCIOUSNESS COMPETENCE LEVELS:
+${CONSCIOUSNESS_COMPETENCE_LEVELS}
+
+CLASSIFICATION TASK:
+Analyze the user's message and classify it as ONE of these 4 levels:
+- Level 1: Unconscious Incompetence (Beginner) - Unaware of skill deficiency
+- Level 2: Conscious Incompetence - Aware of deficiency, ready to learn  
+- Level 3: Conscious Competence - Can perform with concentration
+- Level 4: Unconscious Competence - Skill is second nature
+
+RESPONSE FORMAT:
+Respond with ONLY the level number and name, like: "Level 2: Conscious Incompetence (Beginner)"
+Do not provide any explanation or additional text.`
+
+// Build enhanced system prompt with classification history
+function buildEnhancedSystemPrompt(classifications: ClassificationData[]): string {
+  let classificationContext = ""
+  
+  if (classifications.length > 0) {
+    classificationContext = "\n\nSTUDENT COMPETENCE LEVEL HISTORY:\n"
+    classifications.forEach((item, index) => {
+      classificationContext += `Message ${index + 1}: "${item.message.substring(0, 50)}${item.message.length > 50 ? '...' : ''}" - ${item.competenceLevel}\n`
+    })
+    classificationContext += "\nUse this competence level history to inform your teaching approach in your next response. Respond in such a way that it helps the user advance to the next level. Do not expect the user to advance from level 1 to 2 to 3 in a matter of 3 conversation turns. It make take a few back and forths for a user to develop within a given level, even going back a level at times. If the user is at level 4, ask them questions that require applying the concepts of this course into domains further and further away from the course's domain. This is known as developing the skill of 'short transfer' to 'far transfer' which helps learners grow their mastery over a domain by applying it further and further outside of the classroom."
+  }
+  
+  return SYSTEM_PROMPT + classificationContext
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { message, history, model } = await request.json()
@@ -93,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
     if (!apiKey || apiKey === "" || apiKey === "undefined" || apiKey === "null") {
-      console.error("[v0] ANTHROPIC_API_KEY is not properly set. Current value:", process.env.ANTHROPIC_API_KEY)
+      console.error("[CHAT] ANTHROPIC_API_KEY is not properly set. Current value:", process.env.ANTHROPIC_API_KEY)
       return NextResponse.json(
         {
           error: "Claude API is not configured. Please add your ANTHROPIC_API_KEY to environment variables.",
@@ -103,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!apiKey.startsWith("sk-ant-")) {
-      console.error("[v0] Invalid ANTHROPIC_API_KEY format")
+      console.error("[CHAT] Invalid ANTHROPIC_API_KEY format")
       return NextResponse.json(
         {
           error: "Invalid API key format. Anthropic API keys should start with 'sk-ant-'",
@@ -112,11 +149,91 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("[v0] Initializing Anthropic client...")
+    console.log("[CHAT] Initializing Anthropic client...")
     const anthropic = new Anthropic({
       apiKey: apiKey,
     })
 
+    // Store classification history internally (not sent to frontend)
+    const classificationHistory: ClassificationData[] = []
+    
+    // Extract previous classifications from history if they exist
+    // We need to classify all previous user messages to build the full context
+    if (history && Array.isArray(history)) {
+      console.log("[CHAT] Previous conversation history length:", history.length)
+      
+      // Classify all previous user messages to rebuild the classification history
+      for (const msg of history) {
+        if (msg.role === "user") {
+          console.log("[CHAT] Re-classifying previous user message:", msg.content.substring(0, 50) + "...")
+          
+          const prevClassificationMessages = [{ role: "user" as const, content: msg.content }]
+          
+          try {
+            const prevClassificationResponse = await anthropic.messages.create({
+              model: "claude-3-5-haiku-latest", // This classification should be fast since it's only used to build the classification history
+              max_tokens: 50,
+              system: CLASSIFICATION_SYSTEM_PROMPT,
+              messages: prevClassificationMessages,
+            })
+
+            let prevCompetenceLevel = "Level 2: Conscious Incompetence" // Default fallback
+            if (prevClassificationResponse?.content?.[0]?.type === "text" && prevClassificationResponse.content[0].text) {
+              prevCompetenceLevel = prevClassificationResponse.content[0].text.trim()
+            }
+
+            classificationHistory.push({
+              message: msg.content,
+              competenceLevel: prevCompetenceLevel
+            })
+            
+            console.log("[CHAT] Previous message classified as:", prevCompetenceLevel)
+          } catch (error) {
+            console.error("[CHAT] Error classifying previous message:", error)
+            // Add with default classification if error occurs
+            classificationHistory.push({
+              message: msg.content,
+              competenceLevel: "unknown"
+            })
+          }
+        }
+      }
+    }
+
+    // PHASE 1: Classify the current user message
+    console.log("[CHAT] PHASE 1: Classifying current user message competence level")
+    console.log("[CHAT] User message to classify:", message)
+    
+    const classificationMessages = [{ role: "user" as const, content: message }]
+    
+    const classificationResponse = await anthropic.messages.create({
+      model: "claude-3-5-haiku-latest", // This classification should be fast since it's only used to build the classification history
+      max_tokens: 50,
+      system: CLASSIFICATION_SYSTEM_PROMPT,
+      messages: classificationMessages,
+    })
+
+    let competenceLevel = "unknown" // Default fallback
+    if (classificationResponse?.content?.[0]?.type === "text" && classificationResponse.content[0].text) {
+      competenceLevel = classificationResponse.content[0].text.trim()
+    }
+
+    console.log("[CHAT] Current message classified as:", competenceLevel)
+
+    // Add current message classification to history
+    classificationHistory.push({
+      message: message,
+      competenceLevel: competenceLevel
+    })
+
+    console.log("[CHAT] Full classification history:")
+    classificationHistory.forEach((item, index) => {
+      console.log(`  ${index + 1}. "${item.message.substring(0, 40)}${item.message.length > 40 ? '...' : ''}" -> ${item.competenceLevel}`)
+    })
+
+    // PHASE 2: Generate response using enhanced system prompt with classification context
+    console.log("[CHAT] PHASE 2: Generating response with classification context")
+    
     const messages: Array<{ role: "user" | "assistant"; content: string }> = []
 
     // Add previous conversation history if it exists
@@ -127,25 +244,35 @@ export async function POST(request: NextRequest) {
     // Add the current message
     messages.push({ role: "user", content: message })
 
-    console.log("[v0] Sending conversation to Claude:", messages)
+    // Build enhanced system prompt with classification history
+    const enhancedSystemPrompt = buildEnhancedSystemPrompt(classificationHistory)
+    
+    console.log("[CHAT] Enhanced system prompt with classifications:")
+    console.log("=".repeat(80))
+    console.log(enhancedSystemPrompt)
+    console.log("=".repeat(80))
+    
+    console.log("[CHAT] Full conversation history being sent to Claude:")
+    console.log("Messages:", JSON.stringify(messages, null, 2))
+
     const response = await anthropic.messages.create({
       model: model || "claude-sonnet-4-0",
       max_tokens: 1000,
-      system: SYSTEM_PROMPT,
+      system: enhancedSystemPrompt,
       messages: messages,
     })
 
-    console.log("[v0] Claude response received")
+    console.log("[CHAT] Claude response received")
 
     // Better error handling for response content
     if (!response || !response.content || !Array.isArray(response.content) || response.content.length === 0) {
-      console.error("[v0] Invalid response structure:", response)
+      console.error("[CHAT] Invalid response structure:", response)
       return NextResponse.json({ error: "Invalid response from Claude API" }, { status: 500 })
     }
 
     const firstContent = response.content[0]
     if (!firstContent || typeof firstContent !== "object") {
-      console.error("[v0] Invalid content structure:", firstContent)
+      console.error("[CHAT] Invalid content structure:", firstContent)
       return NextResponse.json({ error: "Invalid content structure from Claude API" }, { status: 500 })
     }
 
@@ -157,13 +284,15 @@ export async function POST(request: NextRequest) {
       assistantMessage = firstContent.text
     }
 
-    console.log("[v0] Sending response")
+    console.log("[CHAT] Final assistant response:", assistantMessage)
+    console.log("[CHAT] Sending response to frontend (competence level NOT included)")
+    
     return NextResponse.json({ response: assistantMessage })
   } catch (error) {
-    console.error("[v0] Error calling Claude API:", error)
+    console.error("[CHAT] Error calling Claude API:", error)
     if (error instanceof Error) {
-      console.error("[v0] Error message:", error.message)
-      console.error("[v0] Error stack:", error.stack)
+      console.error("[CHAT] Error message:", error.message)
+      console.error("[CHAT] Error stack:", error.stack)
     }
     return NextResponse.json(
       {
