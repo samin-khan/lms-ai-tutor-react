@@ -96,15 +96,15 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   }
 
   return (
-    <div className="h-[500px] flex flex-col">
+    <div className="h-[600px] flex flex-col">
       {/* Assignment Instructions */}
-      <div className="p-4 bg-blue-50 border-b border-blue-200">
+      <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
         <h3 className="font-medium text-blue-900 mb-2">Assignment: Grade Calculator</h3>
         <p className="text-sm text-blue-800 leading-relaxed">{ASSIGNMENT_INSTRUCTIONS}</p>
       </div>
 
       {/* Code Editor */}
-      <div className="flex-1 border-b border-gray-200">
+      <div className="h-80 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
           <span className="text-sm font-medium text-gray-700">Python Editor</span>
           <div className="flex gap-2">
@@ -118,55 +118,61 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
             </Button>
           </div>
         </div>
-        <PythonEditor code={code} onChange={setCode} />
+        <div className="h-[calc(100%-48px)]">
+          <PythonEditor code={code} onChange={setCode} />
+        </div>
       </div>
 
       {/* Results Section */}
-      <div className="h-48 flex">
+      <div className="flex-1 flex min-h-0">
         {/* Console Output */}
-        <div className="w-1/2 border-r border-gray-200">
-          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
+        <div className="w-1/2 border-r border-gray-200 flex flex-col">
+          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
             <span className="text-sm font-medium text-gray-700">Console Output</span>
             <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
               Clear
             </Button>
           </div>
-          <Console output={output} />
+          <div className="flex-1 min-h-0">
+            <Console output={output} />
+          </div>
         </div>
 
         {/* Test Results */}
-        <div className="w-1/2">
-          <div className="p-2 bg-gray-50 border-b border-gray-200">
+        <div className="w-1/2 flex flex-col">
+          <div className="p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
             <span className="text-sm font-medium text-gray-700">
               Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
             </span>
           </div>
-          <ScrollArea className="h-[calc(100%-40px)]">
-            <div className="p-2 space-y-1">
-              {testResults.length === 0 ? (
-                <p className="text-sm text-gray-500 italic">Run your code to see test results</p>
-              ) : (
-                testResults.map((test, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-2 p-2 rounded text-xs ${
-                      test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
-                    }`}
-                  >
-                    {test.passed ? (
-                      <CheckCircle className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <XCircle className="h-3 w-3 text-red-600" />
-                    )}
-                    <div className="flex-1">
-                      <div className="font-medium">{test.name}</div>
-                      {test.message && <div className="text-xs opacity-75">{test.message}</div>}
+          <div className="flex-1 min-h-0">
+            <ScrollArea className="h-full">
+              <div className="p-2 space-y-1">
+                {testResults.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Run your code to see test results</p>
+                ) : (
+                  testResults.map((test, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center gap-2 p-2 rounded text-xs ${
+                        test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                      }`}
+                    >
+                      {test.passed ? (
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <XCircle className="h-3 w-3 text-red-600" />
+                      )}
+                      <div className="flex-1">
+                        <div className="font-medium">{test.name}</div>
+                        {test.message && <div className="text-xs opacity-75">{test.message}</div>}
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </ScrollArea>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </div>
     </div>
