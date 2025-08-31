@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Play, RotateCcw, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { Play, RotateCcw, CheckCircle, XCircle, Loader2, Maximize2, Plus, Minus } from "lucide-react"
 import { PythonEditor } from "@/components/python-editor"
 import { Console } from "@/components/console"
 
@@ -60,8 +60,9 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   const [testResults, setTestResults] = useState<TestResult[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [runAttempts, setRunAttempts] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [fontSize, setFontSize] = useState(14)
 
-  // Notify parent component of updates
   useEffect(() => {
     onUpdate(code, output, testResults, runAttempts)
   }, [code, output, testResults, runAttempts, onUpdate])
@@ -71,7 +72,6 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
     setRunAttempts((prev) => prev + 1)
 
     try {
-      // Simulate Python execution (in a real implementation, you'd use Pyodide or similar)
       const results = await simulatePythonExecution(code)
       setOutput(results.output)
       setTestResults(results.testResults)
@@ -95,116 +95,213 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
     setRunAttempts(0)
   }
 
-  return (
-    <div className="h-[600px] flex flex-col">
-      {/* Assignment Instructions */}
-      <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
-        <h3 className="font-medium text-blue-900 mb-2">Assignment: Grade Calculator</h3>
-        <p className="text-sm text-blue-800 leading-relaxed">{ASSIGNMENT_INSTRUCTIONS}</p>
-      </div>
+  const increaseFontSize = () => {
+    setFontSize((prev) => Math.min(prev + 2, 24))
+  }
 
-      {/* Code Editor */}
-      <div className="h-80 border-b border-gray-200 flex-shrink-0">
-        <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
-          <span className="text-sm font-medium text-gray-700">Python Editor</span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={resetCode} className="text-xs bg-transparent">
-              <RotateCcw className="h-3 w-3 mr-1" />
-              Reset
-            </Button>
-            <Button size="sm" onClick={runPythonCode} disabled={isRunning} className="text-xs">
-              {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-              Run
+  const decreaseFontSize = () => {
+    setFontSize((prev) => Math.max(prev - 2, 10))
+  }
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen)
+  }
+
+  const ModalContent = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={toggleModal}>
+      <div className="bg-white rounded-lg w-[90%] h-[90%] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
+            <Button size="sm" variant="outline" onClick={toggleModal}>
+              Close
             </Button>
           </div>
         </div>
-        <div className="h-[calc(100%-48px)]">
-          <PythonEditor code={code} onChange={setCode} />
+        <div className="h-96 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
+            <span className="text-sm font-medium text-gray-700">Python Editor</span>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={decreaseFontSize} className="text-xs bg-transparent">
+                <Minus className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={increaseFontSize} className="text-xs bg-transparent">
+                <Plus className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={resetCode} className="text-xs bg-transparent">
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset
+              </Button>
+              <Button size="sm" onClick={runPythonCode} disabled={isRunning} className="text-xs">
+                {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
+                Run
+              </Button>
+            </div>
+          </div>
+          <div className="h-[calc(100%-48px)]" style={{ fontSize: `${fontSize}px` }}>
+            <PythonEditor code={code} onChange={setCode} />
+          </div>
         </div>
-      </div>
-
-      {/* Results Section */}
-      <div className="flex-1 flex min-h-0">
-        {/* Console Output */}
-        <div className="w-1/2 border-r border-gray-200 flex flex-col">
-          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
-            <span className="text-sm font-medium text-gray-700">Console Output</span>
-            <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
-              Clear
-            </Button>
+        <div className="flex-1 flex min-h-0">
+          <div className="w-1/2 border-r border-gray-200 flex flex-col min-w-0">
+            <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+              <span className="text-sm font-medium text-gray-700">Console Output</span>
+              <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
+                Clear
+              </Button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <Console output={output} />
+            </div>
           </div>
-          <div className="flex-1 min-h-0">
-            <Console output={output} />
-          </div>
-        </div>
-
-        {/* Test Results */}
-        <div className="w-1/2 flex flex-col">
-          <div className="p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
-            <span className="text-sm font-medium text-gray-700">
-              Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
-            </span>
-          </div>
-          <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full">
-              <div className="p-2 space-y-1">
-                {testResults.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic">Run your code to see test results</p>
-                ) : (
-                  testResults.map((test, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center gap-2 p-2 rounded text-xs ${
-                        test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
-                      }`}
-                    >
-                      {test.passed ? (
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <XCircle className="h-3 w-3 text-red-600" />
-                      )}
-                      <div className="flex-1">
-                        <div className="font-medium">{test.name}</div>
-                        {test.message && <div className="text-xs opacity-75">{test.message}</div>}
+          <div className="w-1/2 flex flex-col min-w-0">
+            <div className="p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+              <span className="text-sm font-medium text-gray-700">
+                Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
+              </span>
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-2 space-y-1">
+                  {testResults.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Run your code to see test results</p>
+                  ) : (
+                    testResults.map((test, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-2 p-2 rounded text-xs ${
+                          test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                        }`}
+                      >
+                        {test.passed ? (
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <XCircle className="h-3 w-3 text-red-600" />
+                        )}
+                        <div className="flex-1">
+                          <div className="font-medium">{test.name}</div>
+                          {test.message && <div className="text-xs opacity-75">{test.message}</div>}
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
         </div>
       </div>
     </div>
   )
+
+  return (
+    <>
+      <div className="h-[600px] flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+        <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
+          <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
+        </div>
+        <div className="h-80 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
+            <span className="text-sm font-medium text-gray-700">Python Editor</span>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={decreaseFontSize} className="text-xs bg-transparent">
+                <Minus className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={increaseFontSize} className="text-xs bg-transparent">
+                <Plus className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={toggleModal} className="text-xs bg-transparent">
+                <Maximize2 className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={resetCode} className="text-xs bg-transparent">
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset
+              </Button>
+              <Button size="sm" onClick={runPythonCode} disabled={isRunning} className="text-xs">
+                {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
+                Run
+              </Button>
+            </div>
+          </div>
+          <div className="h-[calc(100%-48px)]" style={{ fontSize: `${fontSize}px` }}>
+            <PythonEditor code={code} onChange={setCode} />
+          </div>
+        </div>
+        <div className="flex-1 flex min-h-0 overflow-hidden">
+          <div className="w-1/2 border-r border-gray-200 flex flex-col min-w-0">
+            <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+              <span className="text-sm font-medium text-gray-700">Console Output</span>
+              <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
+                Clear
+              </Button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <Console output={output} />
+            </div>
+          </div>
+          <div className="w-1/2 flex flex-col min-w-0">
+            <div className="p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+              <span className="text-sm font-medium text-gray-700">
+                Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
+              </span>
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-2 space-y-1">
+                  {testResults.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Run your code to see test results</p>
+                  ) : (
+                    testResults.map((test, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-2 p-2 rounded text-xs ${
+                          test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                        }`}
+                      >
+                        {test.passed ? (
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <XCircle className="h-3 w-3 text-red-600" />
+                        )}
+                        <div className="flex-1">
+                          <div className="font-medium">{test.name}</div>
+                          {test.message && <div className="text-xs opacity-75">{test.message}</div>}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
+        </div>
+      </div>
+      {isModalOpen && <ModalContent />}
+    </>
+  )
 }
 
-// Simulate Python code execution and testing
 async function simulatePythonExecution(code: string): Promise<{
   output: string
   testResults: TestResult[]
 }> {
-  // Simulate execution delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
   let output = ""
   const testResults: TestResult[] = []
 
   try {
-    // Extract the calculate_grade function from the code
     const functionMatch = code.match(/def calculate_grade$$score$$:([\s\S]*?)(?=\n\S|\n$|$)/m)
     if (!functionMatch) {
       throw new Error("calculate_grade function not found")
     }
 
-    // Simulate running the main code
     const mainMatch = code.match(/if __name__ == "__main__":([\s\S]*?)$/m)
     if (mainMatch) {
       output =
         "Score: 95 -> Grade: A\nScore: 87 -> Grade: B\nScore: 73 -> Grade: C\nScore: 65 -> Grade: D\nScore: 45 -> Grade: F\n"
     }
 
-    // Run unit tests
     for (const test of UNIT_TESTS) {
       const result = simulateGradeFunction(test.input, code)
       const passed = result === test.expected || (test.expected === "ERROR" && result.includes("Error"))
@@ -222,12 +319,7 @@ async function simulatePythonExecution(code: string): Promise<{
   return { output, testResults }
 }
 
-// Simulate the grade calculation function
 function simulateGradeFunction(score: number, code: string): string {
-  // This is a simplified simulation - in a real implementation,
-  // you would execute the actual Python code
-
-  // Check for basic error handling patterns in the code
   const hasErrorHandling =
     code.includes("if") &&
     (code.includes("< 0") || code.includes("> 100") || code.includes("invalid") || code.includes("error"))
@@ -240,7 +332,6 @@ function simulateGradeFunction(score: number, code: string): string {
     return "Error: Invalid score"
   }
 
-  // Simulate grade calculation based on common patterns
   if (score >= 90) return "A"
   if (score >= 80) return "B"
   if (score >= 70) return "C"
