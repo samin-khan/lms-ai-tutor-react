@@ -5,7 +5,7 @@ export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, history, model } = await request.json()
+    const { message, history, model, systemPrompt } = await request.json()
 
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
@@ -47,11 +47,7 @@ export async function POST(request: NextRequest) {
     // Add the current message
     messages.push({ role: "user", content: message })
 
-    console.log("[v0] Sending conversation to Claude:", messages)
-    const response = await anthropic.messages.create({
-      model: model || "claude-sonnet-4-0",
-      max_tokens: 1000,
-      system: `You are Claude, a helpful AI tutor for CS101 (Introduction to Computer Science). You specialize in helping students learn programming fundamentals, particularly Python.
+    const defaultSystemPrompt = `You are Claude, a helpful AI tutor for CS101 (Introduction to Computer Science). You specialize in helping students learn programming fundamentals, particularly Python.
 
 Your role:
 - Help students understand programming concepts clearly and step-by-step
@@ -71,7 +67,13 @@ Guidelines:
 - Always be encouraging and positive
 - When helping with graded assignments, focus on understanding mistakes and learning from feedback
 
-Focus areas: Variables, data types, conditionals, loops, functions, basic debugging, and fundamental programming concepts.`,
+Focus areas: Variables, data types, conditionals, loops, functions, basic debugging, and fundamental programming concepts.`
+
+    console.log("[v0] Sending conversation to Claude:", messages)
+    const response = await anthropic.messages.create({
+      model: model || "claude-sonnet-4-0",
+      max_tokens: 1000,
+      system: systemPrompt || defaultSystemPrompt,
       messages: messages,
     })
 
