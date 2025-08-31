@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Send, Code, BookOpen, Zap, ChevronDown, Check, GraduationCap, X, Loader2 } from "lucide-react"
+import { Send, Code, BookOpen, Zap, ChevronDown, Check, GraduationCap, X, Loader2, TestTube } from "lucide-react"
 import Image from "next/image"
 
 interface Message {
@@ -268,6 +268,518 @@ The HTML should be complete and ready to display in an iframe. Include proper st
 
 Remember: This is for CS 101 students, so keep explanations clear and examples beginner-friendly.`
 
+function parseInteractionContent(content: string): string {
+  if (!content) return ""
+  
+  // Check if content is already clean HTML (starts with <!DOCTYPE or <html)
+  if (content.trim().startsWith('<!DOCTYPE') || content.trim().startsWith('<html')) {
+    return content
+  }
+  
+  // Extract HTML from markdown code blocks
+  const htmlMatch = content.match(/```html\s*([\s\S]*?)\s*```/i)
+  if (htmlMatch) {
+    return htmlMatch[1].trim()
+  }
+  
+  // Extract content from generic code blocks
+  const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/)
+  if (codeMatch) {
+    const extractedContent = codeMatch[1].trim()
+    // Check if the extracted content looks like HTML
+    if (extractedContent.includes('<html') || extractedContent.includes('<!DOCTYPE')) {
+      return extractedContent
+    }
+  }
+  
+  // If no code blocks found, check if it's raw HTML
+  if (content.includes('<html') || content.includes('<!DOCTYPE')) {
+    return content.trim()
+  }
+  
+  // Fallback: return content as-is wrapped in basic HTML structure
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Learning</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+    </style>
+</head>
+<body>
+    <div>${content}</div>
+</body>
+</html>`
+}
+
+const HARDCODED_INTERACTION_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Variable Explorer - CS101</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            color: #4f46e5;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1em;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .variables-panel, .types-panel {
+            background: #f9fafb;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .variable-item, .type-slot {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .variable-item:hover {
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);
+        }
+        
+        .variable-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        
+        .type-slot {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            border-style: dashed;
+        }
+        
+        .type-slot.drag-over {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+        
+        .type-slot.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+        
+        .type-slot.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .variable-code {
+            font-family: 'Courier New', monospace;
+            background: #1f2937;
+            color: #10b981;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+        
+        .feedback.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        
+        .reset-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+        
+        .achievement {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fbbf24;
+            color: #92400e;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            transform: translateX(100%);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(251, 191, 36, 0.3);
+        }
+        
+        .achievement.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🐍 Python Variable Explorer</h1>
+            <p class="subtitle">Drag variables to their correct data types!</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="streak">0</div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="variables-panel">
+                <h3 class="panel-title">Variables</h3>
+                <div id="variablesContainer"></div>
+            </div>
+            
+            <div class="types-panel">
+                <h3 class="panel-title">Data Types</h3>
+                <div class="type-slot" data-type="int">
+                    <strong>Integer (int)</strong>
+                </div>
+                <div class="type-slot" data-type="str">
+                    <strong>String (str)</strong>
+                </div>
+                <div class="type-slot" data-type="float">
+                    <strong>Float (float)</strong>
+                </div>
+                <div class="type-slot" data-type="bool">
+                    <strong>Boolean (bool)</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback" style="display: none;"></div>
+        
+        <button class="reset-btn" onclick="resetGame()">🔄 Reset Game</button>
+    </div>
+    
+    <div class="achievement" id="achievement">
+        🎉 Great job! Keep it up!
+    </div>
+    
+    <script>
+        const variables = [
+            { code: 'age = 25', type: 'int' },
+            { code: 'name = "Alice"', type: 'str' },
+            { code: 'height = 5.8', type: 'float' },
+            { code: 'is_student = True', type: 'bool' },
+            { code: 'temperature = -10', type: 'int' },
+            { code: 'greeting = "Hello!"', type: 'str' },
+            { code: 'pi = 3.14159', type: 'float' },
+            { code: 'is_valid = False', type: 'bool' }
+        ];
+        
+        let currentVariables = [];
+        let score = 0;
+        let level = 1;
+        let streak = 0;
+        let correctAnswers = 0;
+        
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        function generateVariables() {
+            const numVars = Math.min(4 + level - 1, variables.length);
+            currentVariables = shuffleArray(variables).slice(0, numVars);
+            const container = document.getElementById('variablesContainer');
+            container.innerHTML = '';
+            
+            currentVariables.forEach((variable, index) => {
+                const div = document.createElement('div');
+                div.className = 'variable-item';
+                div.draggable = true;
+                div.dataset.type = variable.type;
+                div.dataset.index = index;
+                div.innerHTML = '<div class="variable-code">' + variable.code + '</div>';
+                
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragend', handleDragEnd);
+                
+                container.appendChild(div);
+            });
+        }
+        
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.dataset.type);
+            e.dataTransfer.setData('application/x-index', e.target.dataset.index);
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+        
+        function setupDropZones() {
+            const typeSlots = document.querySelectorAll('.type-slot');
+            
+            typeSlots.forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            const draggedType = e.dataTransfer.getData('text/plain');
+            const draggedIndex = e.dataTransfer.getData('application/x-index');
+            const targetType = e.target.dataset.type;
+            
+            const draggedElement = document.querySelector('[data-index="' + draggedIndex + '"]');
+            
+            if (draggedType === targetType) {
+                e.target.classList.add('correct');
+                draggedElement.style.display = 'none';
+                correctAnswers++;
+                streak++;
+                score += 10 * level;
+                
+                showFeedback('Correct! ' + currentVariables[draggedIndex].code + ' is indeed a ' + targetType + '!', 'success');
+                showAchievement('🎯 Correct!');
+                
+                updateStats();
+                
+                if (correctAnswers === currentVariables.length) {
+                    setTimeout(() => {
+                        level++;
+                        correctAnswers = 0;
+                        showAchievement('🎉 Level Up! Level ' + level);
+                        resetTypeSlots();
+                        generateVariables();
+                        hideFeedback();
+                    }, 1500);
+                }
+            } else {
+                e.target.classList.add('incorrect');
+                streak = 0;
+                showFeedback('Not quite! ' + currentVariables[draggedIndex].code + ' is not a ' + targetType + '. Try again!', 'error');
+                
+                setTimeout(() => {
+                    e.target.classList.remove('incorrect');
+                }, 1000);
+            }
+        }
+        
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = 'feedback ' + type;
+            feedback.style.display = 'block';
+        }
+        
+        function hideFeedback() {
+            document.getElementById('feedback').style.display = 'none';
+        }
+        
+        function showAchievement(message) {
+            const achievement = document.getElementById('achievement');
+            achievement.textContent = message;
+            achievement.classList.add('show');
+            
+            setTimeout(() => {
+                achievement.classList.remove('show');
+            }, 2000);
+        }
+        
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('streak').textContent = streak;
+            
+            const progress = (correctAnswers / currentVariables.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        function resetTypeSlots() {
+            const typeSlots = document.querySelectorAll('.type-slot');
+            typeSlots.forEach(slot => {
+                slot.classList.remove('correct', 'incorrect');
+            });
+        }
+        
+        function resetGame() {
+            score = 0;
+            level = 1;
+            streak = 0;
+            correctAnswers = 0;
+            resetTypeSlots();
+            generateVariables();
+            updateStats();
+            hideFeedback();
+            showAchievement('🔄 Game Reset!');
+        }
+        
+        // Initialize game
+        generateVariables();
+        setupDropZones();
+        updateStats();
+    </script>
+</body>
+</html>`
+
 function buildClaudePrompt(assignmentId: number): string {
   const currentAssignment = currentAssignments.find((a) => a.id === assignmentId)
   if (currentAssignment) {
@@ -454,7 +966,8 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         INTERACTION_SYSTEM_PROMPT,
       )
 
-      setInteractionContent(response)
+      const parsedContent = parseInteractionContent(response)
+      setInteractionContent(parsedContent)
     } catch (error) {
       console.error("Error generating interaction:", error)
       setInteractionContent(
@@ -469,6 +982,12 @@ Feel free to ask me anything or use the quick action buttons below to get starte
     setShowInteraction(false)
     setInteractionContent("")
     setIsGeneratingInteraction(false)
+  }
+
+  const handleTestInteraction = () => {
+    setShowInteraction(true)
+    setIsGeneratingInteraction(false)
+    setInteractionContent(HARDCODED_INTERACTION_TEMPLATE)
   }
 
   const handleQuickAction = (action: any) => {
@@ -592,6 +1111,14 @@ Feel free to ask me anything or use the quick action buttons below to get starte
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Button
+                onClick={handleTestInteraction}
+                variant="outline"
+                className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              >
+                <TestTube className="h-4 w-4 mr-2" />
+                Test
+              </Button>
               <Button
                 onClick={handleCreateInteraction}
                 disabled={isGeneratingInteraction || !inputValue.trim()}
