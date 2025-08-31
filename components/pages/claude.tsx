@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Send, Code, BookOpen, Zap, ChevronDown, Check, BarChart3, FileText, GraduationCap } from "lucide-react"
+import { Send, Code, BookOpen, Zap, ChevronDown, Check, Play, X } from "lucide-react"
 import Image from "next/image"
+import { InteractiveLearning } from "@/components/interactive-learning"
 
 interface Message {
   id: string
@@ -31,18 +31,18 @@ const modelOptions: ModelOption[] = [
   {
     id: "claude-sonnet-4-0",
     name: "Claude Sonnet 4",
-    description: "Smart, efficient model for everyday use"
+    description: "Smart, efficient model for everyday use",
   },
   {
     id: "claude-opus-4-1",
-    name: "Claude Opus 4.1", 
-    description: "Powerful, large model for complex challenges"
+    name: "Claude Opus 4.1",
+    description: "Powerful, large model for complex challenges",
   },
   {
     id: "claude-3-5-haiku-latest",
     name: "Claude Haiku 3.5",
-    description: "Fastest model for daily tasks"
-  }
+    description: "Fastest model for daily tasks",
+  },
 ]
 
 const quickActions = [
@@ -325,6 +325,12 @@ Feel free to ask me anything or use the quick action buttons below to get starte
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const hasInitializedRef = useRef<number | null>(null)
 
+  const [showInteractiveLearning, setShowInteractiveLearning] = useState(false)
+  const [currentCode, setCurrentCode] = useState("")
+  const [consoleOutput, setConsoleOutput] = useState("")
+  const [testResults, setTestResults] = useState<Array<{ name: string; passed: boolean; message?: string }>>([])
+  const [runAttempts, setRunAttempts] = useState(0)
+
   useEffect(() => {
     if (assignmentId && hasInitializedRef.current !== assignmentId) {
       hasInitializedRef.current = assignmentId
@@ -346,15 +352,15 @@ Feel free to ask me anything or use the quick action buttons below to get starte
     scrollToBottom()
   }, [messages])
 
-  const callClaudeAPI = async (message: string): Promise<{response: string, competenceLevel?: string}> => {
+  const callClaudeAPI = async (message: string): Promise<{ response: string; competenceLevel?: string }> => {
     try {
       // Convert messages to API format, excluding welcome message
       const history = messages
-        .filter(msg => msg.id !== "welcome")
-        .map(msg => ({
-          role: msg.type === "user" ? "user" as const : "assistant" as const,
+        .filter((msg) => msg.id !== "welcome")
+        .map((msg) => ({
+          role: msg.type === "user" ? ("user" as const) : ("assistant" as const),
           content: msg.content,
-          competenceLevel: msg.competenceLevel // Include competence level for user messages
+          competenceLevel: msg.competenceLevel, // Include competence level for user messages
         }))
 
       const response = await fetch("/api/chat", {
@@ -377,7 +383,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
 
       return {
         response: data.response,
-        competenceLevel: data.competenceLevel
+        competenceLevel: data.competenceLevel,
       }
     } catch (error) {
       console.error("Error calling Claude API:", error)
@@ -388,10 +394,28 @@ Feel free to ask me anything or use the quick action buttons below to get starte
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return
 
+    let enhancedContent = content.trim()
+    if (showInteractiveLearning) {
+      enhancedContent = `${content.trim()}
+
+[STUDENT_CODE]
+${currentCode || "No code written yet"}
+
+[CONSOLE_OUTPUT]
+${consoleOutput || "No output yet"}
+
+[TEST_RESULTS]
+${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.passed ? "✅ Passed" : "❌ Failed" + (test.message ? ` - ${test.message}` : "")}`).join("\n") : "No tests run yet"}
+
+[INTERACTION_HISTORY]
+- Run attempts: ${runAttempts}
+- Current assignment: Grade Calculator with conditional statements`
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: "user",
-      content: content.trim(),
+      content: content.trim(), // Store original content for display
       timestamp: new Date(),
     }
 
@@ -401,15 +425,11 @@ Feel free to ask me anything or use the quick action buttons below to get starte
     setError(null)
 
     try {
-      const { response, competenceLevel } = await callClaudeAPI(content)
+      const { response, competenceLevel } = await callClaudeAPI(enhancedContent)
 
       // Update the user message with the competence level
-      setMessages((prev) => 
-        prev.map(msg => 
-          msg.id === userMessage.id 
-            ? { ...msg, competenceLevel: competenceLevel }
-            : msg
-        )
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === userMessage.id ? { ...msg, competenceLevel: competenceLevel } : msg)),
       )
 
       const assistantMessage: Message = {
@@ -448,6 +468,18 @@ Feel free to ask me anything or use the quick action buttons below to get starte
     }
   }
 
+  const handleInteractiveLearningUpdate = (
+    code: string,
+    output: string,
+    tests: Array<{ name: string; passed: boolean; message?: string }>,
+    attempts: number,
+  ) => {
+    setCurrentCode(code)
+    setConsoleOutput(output)
+    setTestResults(tests)
+    setRunAttempts(attempts)
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center py-6">
@@ -458,129 +490,151 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         <p className="text-gray-600 text-lg">How can I help you today?</p>
       </div>
 
-      <Card className="flex flex-col bg-stone-50 border-stone-200">
-        <CardContent className="flex flex-col gap-4 p-0 bg-stone-50">
-          <div className="h-[500px] flex flex-col px-6">
-            <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
-              <div className="space-y-4 py-4">
-                {messages.map((message) => (
-                  <div key={message.id} className="flex gap-3 items-start">
-                    {message.type === "user" ? (
-                      <>
-                        <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
-                          <span className="text-white text-sm font-medium">SK</span>
-                        </div>
-                        <div className="bg-stone-200 text-gray-800 rounded-2xl px-4 py-2 max-w-[70%]">
-                          <div className="text-sm leading-relaxed whitespace-pre-line">{message.content}</div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-1">
-                          <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-line max-w-none">
-                            {message.content}
+      <div className={`flex gap-6 transition-all duration-300 ${showInteractiveLearning ? "h-[600px]" : ""}`}>
+        {/* Chat Card */}
+        <Card
+          className={`flex flex-col bg-stone-50 border-stone-200 transition-all duration-300 ${showInteractiveLearning ? "w-1/2" : "w-full"}`}
+        >
+          <CardContent className="flex flex-col gap-4 p-0 bg-stone-50">
+            <div className="h-[500px] flex flex-col px-6">
+              <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
+                <div className="space-y-4 py-4">
+                  {messages.map((message) => (
+                    <div key={message.id} className="flex gap-3 items-start">
+                      {message.type === "user" ? (
+                        <>
+                          <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm font-medium">SK</span>
                           </div>
-                          {message.type === "assistant" && message.id !== "welcome" && (
-                            <div className="mt-4">
-                              <Image
-                                src="/claude-icon.png"
-                                alt="Claude AI"
-                                width={24}
-                                height={24}
-                                className="opacity-60"
-                              />
+                          <div className="bg-stone-200 text-gray-800 rounded-2xl px-4 py-2 max-w-[70%]">
+                            <div className="text-sm leading-relaxed whitespace-pre-line">{message.content}</div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-1">
+                            <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-line max-w-none">
+                              {message.content}
                             </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-                {isTyping && (
-                  <div className="flex gap-3 items-start">
-                    <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                      <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
+                            {message.type === "assistant" && message.id !== "welcome" && (
+                              <div className="mt-4">
+                                <Image
+                                  src="/claude-icon.png"
+                                  alt="Claude AI"
+                                  width={24}
+                                  height={24}
+                                  className="opacity-60"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1">
-                        <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div
-                          className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.1s" }}
-                        ></div>
-                        <div
-                          className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
+                  ))}
+                  {isTyping && (
+                    <div className="flex gap-3 items-start">
+                      <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                        <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1">
+                          <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div
+                            className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
 
-          <div className="flex gap-2 px-6 pb-4 flex-shrink-0">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about CS101..."
-              className="flex-1 bg-white border-stone-300"
-              disabled={isTyping}
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="bg-white border-stone-300">
-                  {modelOptions.find(m => m.id === selectedModel)?.name || "Claude Sonnet 4"}
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                {modelOptions.map((model) => (
-                  <DropdownMenuItem
-                    key={model.id}
-                    onClick={() => setSelectedModel(model.id)}
-                    className="flex items-center justify-between p-3 cursor-pointer"
+            <div className="flex gap-2 px-6 pb-4 flex-shrink-0">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask me anything about CS101..."
+                className="flex-1 bg-white border-stone-300"
+                disabled={isTyping}
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="bg-white border-stone-300">
+                    {modelOptions.find((m) => m.id === selectedModel)?.name || "Claude Sonnet 4"}
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  {modelOptions.map((model) => (
+                    <DropdownMenuItem
+                      key={model.id}
+                      onClick={() => setSelectedModel(model.id)}
+                      className="flex items-center justify-between p-3 cursor-pointer"
+                    >
+                      <div className="text-left">
+                        <div className="font-medium text-gray-900">{model.name}</div>
+                        <div className="text-sm text-gray-600">{model.description}</div>
+                      </div>
+                      {selectedModel === model.id && <Check className="h-4 w-4 text-blue-600" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
+                <Send className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setShowInteractiveLearning(!showInteractiveLearning)}
+                variant={showInteractiveLearning ? "default" : "outline"}
+                className={showInteractiveLearning ? "bg-accent text-accent-foreground" : "bg-white border-stone-300"}
+              >
+                {showInteractiveLearning ? <X className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                <span className="ml-2">{showInteractiveLearning ? "Close" : "Test"}</span>
+              </Button>
+            </div>
+
+            <div className="flex gap-2 px-6 pb-6 flex-shrink-0">
+              {quickActions.map((action) => {
+                const Icon = action.icon
+                return (
+                  <Button
+                    key={action.id}
+                    variant="outline"
+                    className="flex items-center gap-2 bg-white border-stone-300 text-gray-700 hover:bg-gray-50"
+                    onClick={() => handleQuickAction(action)}
                   >
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">{model.name}</div>
-                      <div className="text-sm text-gray-600">{model.description}</div>
-                    </div>
-                    {selectedModel === model.id && (
-                      <Check className="h-4 w-4 text-blue-600" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="flex gap-2 px-6 pb-6 flex-shrink-0">
-            {quickActions.map((action) => {
-              const Icon = action.icon
-              return (
-                <Button
-                  key={action.id}
-                  variant="outline"
-                  className="flex items-center gap-2 bg-white border-stone-300 text-gray-700 hover:bg-gray-50"
-                  onClick={() => handleQuickAction(action)}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-sm">{action.label}</span>
-                </Button>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                    <Icon className="h-4 w-4" />
+                    <span className="text-sm">{action.label}</span>
+                  </Button>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
+        {showInteractiveLearning && (
+          <Card className="w-1/2 bg-white border-stone-200 animate-in slide-in-from-right duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium text-gray-800">Interactive Learning</CardTitle>
+              <CardDescription className="text-gray-600">Practice coding while getting AI assistance</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <InteractiveLearning onUpdate={handleInteractiveLearningUpdate} />
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }
