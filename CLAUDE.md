@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js LMS (Learning Management System) application with integrated Claude AI tutoring capabilities. The app provides a sidebar navigation interface with sections for syllabus, assignments, lectures, and Claude AI tutoring.
+This is a Next.js LMS (Learning Management System) application for CS101 with integrated Claude AI tutoring capabilities. The app provides a sidebar navigation interface with sections for syllabus, assignments, lectures, and Claude AI tutoring.
 
 ## Common Development Commands
 
@@ -16,7 +16,7 @@ npm run start        # Start production server
 npm run lint         # Run ESLint
 
 # Package management
-npm install          # Install dependencies
+pnpm install         # Install dependencies (uses pnpm)
 \`\`\`
 
 ## Architecture Overview
@@ -25,7 +25,7 @@ npm install          # Install dependencies
 - **App Router**: Uses Next.js 15 app directory structure with React 19
 - **Main Layout**: Single-page application with sidebar navigation (`components/layout/main-layout.tsx`)
 - **Page Components**: Separate page components for each section (`components/pages/`)
-- **API Integration**: Claude AI integration via `/app/api/chat/route.tsx` endpoint
+- **API Integration**: Claude AI integration via `/api/chat/route.ts` endpoint
 
 ### Key Architectural Patterns
 - **State Management**: React useState for local state, no external state management
@@ -53,11 +53,11 @@ npm install          # Install dependencies
 
 ## Claude AI Integration
 
-### Chat API Endpoint (`/app/api/chat/route.tsx`)
+### Chat API Endpoint (`/app/api/chat/route.ts`)
 - Handles POST requests with message and conversation history
 - Includes comprehensive error handling and API key validation
 - Uses Claude 3.5 Sonnet with 1000 max tokens
-- System prompt optimized for educational tutoring context with consciousness-competence classification
+- System prompt optimized for CS101 tutoring context
 
 ### Assignment Context Integration
 - Claude page can be pre-loaded with assignment context via `assignmentId`
@@ -84,20 +84,6 @@ Assignment data is currently hardcoded with the following structure:
 - **Current Assignments**: Include instructions, rubric, due dates, difficulty levels
 - **Graded Assignments**: Include feedback, scores, code examples, detailed rubric breakdown
 - Both types support Claude AI integration for contextual help
-
-## Additional Integrations
-
-### Usetiful Analytics
-- User onboarding and analytics integration via `components/usetiful-provider.tsx`
-- Provides user behavior tracking and guided tours
-- Initialized with unique token for session management
-
-## Deployment
-
-- **Platform**: Vercel
-- **Live URL**: https://claude-lms-assistant.vercel.app/
-- **Build Configuration**: ESLint and TypeScript errors ignored for faster deployment
-- **Images**: Unoptimized for compatibility
 
 ## Development Notes
 

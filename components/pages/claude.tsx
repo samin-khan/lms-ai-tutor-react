@@ -18,7 +18,6 @@ interface Message {
   content: string
   timestamp: Date
   topic?: string
-  competenceLevel?: string
 }
 
 interface ModelOption {
@@ -346,15 +345,14 @@ Feel free to ask me anything or use the quick action buttons below to get starte
     scrollToBottom()
   }, [messages])
 
-  const callClaudeAPI = async (message: string): Promise<{response: string, competenceLevel?: string}> => {
+  const callClaudeAPI = async (message: string): Promise<string> => {
     try {
       // Convert messages to API format, excluding welcome message
       const history = messages
         .filter(msg => msg.id !== "welcome")
         .map(msg => ({
           role: msg.type === "user" ? "user" as const : "assistant" as const,
-          content: msg.content,
-          competenceLevel: msg.competenceLevel // Include competence level for user messages
+          content: msg.content
         }))
 
       const response = await fetch("/api/chat", {
@@ -375,10 +373,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         throw new Error(data.error)
       }
 
-      return {
-        response: data.response,
-        competenceLevel: data.competenceLevel
-      }
+      return data.response
     } catch (error) {
       console.error("Error calling Claude API:", error)
       throw error
@@ -401,16 +396,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
     setError(null)
 
     try {
-      const { response, competenceLevel } = await callClaudeAPI(content)
-
-      // Update the user message with the competence level
-      setMessages((prev) => 
-        prev.map(msg => 
-          msg.id === userMessage.id 
-            ? { ...msg, competenceLevel: competenceLevel }
-            : msg
-        )
-      )
+      const response = await callClaudeAPI(content)
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

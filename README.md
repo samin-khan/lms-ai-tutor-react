@@ -1,38 +1,30 @@
-# Claude LMS Assistant
+# New Chat
 
-A modern Learning Management System with integrated Claude AI tutoring capabilities, built with Next.js and React.
+*Automatically synced with your [v0.app](https://v0.app) deployments*
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://claude-lms-assistant.vercel.app/)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/samins-projects-87b8dd4c/v0-claude-lms-assistant)
+[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/WZjiChO1rVK)
 
 ## Overview
 
-Claude LMS Assistant is a comprehensive learning management system that combines traditional LMS features with AI-powered tutoring through Claude. The application provides an intuitive sidebar navigation interface with sections for syllabus, assignments, lectures, and integrated Claude AI assistance.
+This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
+Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
 
-## Live Demo
+## Deployment
 
-The application is deployed on Vercel and live at:
+Your project is live at:
 
-**[https://claude-lms-assistant.vercel.app/](https://claude-lms-assistant.vercel.app/)**
+**[https://vercel.com/samins-projects-87b8dd4c/v0-claude-lms-assistant](https://vercel.com/samins-projects-87b8dd4c/v0-claude-lms-assistant)**
 
-## Features
+## Build your app
 
-- **Interactive Sidebar Navigation** - Easy access to all LMS sections
-- **Assignment Management** - View current and graded assignments with detailed feedback
-- **Claude AI Integration** - Contextual tutoring assistance for assignments and coursework
-- **Responsive Design** - Mobile-first approach with modern UI components
-- **Real-time Chat** - Integrated Claude AI chat interface for instant help
+Continue building your app on:
 
-## Technology Stack
+**[https://v0.app/chat/projects/WZjiChO1rVK](https://v0.app/chat/projects/WZjiChO1rVK)**
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **AI Integration**: Front-end developed with v0 and back-end with Claude Code
-- **Deployment**: Vercel
+## How It Works
 
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Set up environment variables (see CLAUDE.md for details)
-4. Run the development server: `npm run dev`
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+1. Create and modify your project using [v0.app](https://v0.app)
+2. Deploy your chats from the v0 interface
+3. Changes are automatically pushed to this repository
+4. Vercel deploys the latest version from this repository
