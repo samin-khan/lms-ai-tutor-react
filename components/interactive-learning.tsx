@@ -184,6 +184,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   const [runAttempts, setRunAttempts] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [fontSize, setFontSize] = useState(14)
+  const [waitingForResults, setWaitingForResults] = useState(false)
 
   // Use the usePython hook from react-py
   const { runPython, stdout, stderr, isLoading, isRunning } = usePython()
@@ -191,32 +192,61 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   // Combine stdout and stderr for output display
   const [output, setOutput] = useState("")
 
-  
+  // Add this useEffect to monitor stdout changes
+  useEffect(() => {
+    console.log('🔍 stdout changed:', {
+      length: stdout.length,
+      content: stdout.slice(-100), // Last 100 chars
+      timestamp: new Date().toISOString(),
+      waitingForResults
+    })
+  }, [stdout])
+
+  // Add this useEffect to handle stdout updates when we're waiting for results
+  useEffect(() => {
+    if (waitingForResults && stdout.length > 0 && stdout.includes('TEST_RESULTS_END')) {
+      console.log('🎯 Found test results in stdout, processing...')
+      
+      setOutput(stdout + (stderr ? `\nError: ${stderr}` : ""))
+      parseTestResultsFromOutput()
+      setWaitingForResults(false)
+    }
+  }, [stdout, stderr, waitingForResults])
+
   useEffect(() => {
     onUpdate(code, output, testResults, runAttempts)
   }, [code, output, testResults, runAttempts, onUpdate])
 
-
   const runPythonCode = async () => {
+    console.log('🚀 Starting runPythonCode')
+    console.log('📊 Initial stdout length:', stdout.length)
+    
     setRunAttempts((prev) => prev + 1)
 
     try {
       setOutput("Running...")
       setTestResults([])
+      setWaitingForResults(true)
       
-      // await runPython(code)
+      console.log('📝 About to run unit tests')
       await runUnitTests(code)
-      setOutput(stdout + (stderr ? `\nError: ${stderr}` : ""))
-
-      // Then run the unit tests
+      
+      console.log('✅ Unit tests completed')
+      console.log('📊 Final stdout length:', stdout.length)
+      console.log('📄 Final stdout content (last 200 chars):', stdout.slice(-200))
+      
+      // Don't set output here - let the useEffect handle it when stdout updates
+      
     } catch (error) {
       console.error('Error running Python code:', error)
+      setWaitingForResults(false)
     }
   }
 
   // const runUnitTests = async () => {
 
   const runUnitTests = async (code: string) => {    
+    console.log('🧪 Starting runUnitTests')
     // Create a comprehensive test script that stores all results
     const testScript = `
 # Initialize test results storage
@@ -273,27 +303,43 @@ else:
 `
 
     try {
+      console.log('🐍 About to call runPython')
+      console.log('📊 Pre-runPython stdout length:', stdout.length)
+      
       await runPython(code + `\n` + testScript)
-      await parseTestResultsFromOutput()
+      
+      console.log('🐍 runPython completed')
+      console.log('📊 Post-runPython stdout length:', stdout.length)
+      console.log('📄 Post-runPython stdout (last 200 chars):', stdout.slice(-200))
+      
+      // Don't parse results here - let the useEffect handle it
+      
     } catch (error) {
       console.error('Error running unit tests:', error)
+      setWaitingForResults(false)
     }
   }
 
-  const parseTestResultsFromOutput = async () => {
+  const parseTestResultsFromOutput = () => {
+    console.log('🔍 Starting parseTestResultsFromOutput')
+    console.log('📊 Current stdout length:', stdout.length)
+    console.log('📄 Current stdout (first 500 chars):', stdout.slice(0, 500))
+    console.log('📄 Current stdout (last 500 chars):', stdout.slice(-500))
+    
     const newTestResults: TestResult[] = []
     const lines = stdout.split('\n')
     
-    console.log('Full stdout:', stdout)
-    console.log('Lines array:', lines)
+    console.log('📝 Total lines in stdout:', lines.length)
+    console.log('🔍 Looking for TEST_RESULTS_START and TEST_RESULTS_END')
     
     // Find the test results section
     const startIndex = lines.findIndex(line => line.trim().includes('TEST_RESULTS_START'))
     const endIndex = lines.findIndex(line => line.trim().includes('TEST_RESULTS_END'))
     
-    console.log(`Found start index: ${startIndex}, end index: ${endIndex}`)
+    console.log(`📍 Found start index: ${startIndex}, end index: ${endIndex}`)
     
     if (startIndex !== -1 && endIndex !== -1) {
+      console.log('✅ Found test result delimiters')
       // Parse each test result line
       for (let i = startIndex + 1; i < endIndex; i++) {
         const line = lines[i].trim()
@@ -328,7 +374,14 @@ else:
         }
       }
     } else {
-      console.log('Could not find test results delimiters in output')
+      console.log('❌ Could not find test result delimiters')
+      console.log('🔍 Searching for lines containing TEST_RESULTS:')
+      lines.forEach((line, index) => {
+        if (line.includes('TEST_RESULTS')) {
+          console.log(`Line ${index}: "${line}"`)
+        }
+      })
+      
       // Still try to find individual test result lines without delimiters
       for (const line of lines) {
         const trimmed = line.trim()
@@ -371,7 +424,7 @@ else:
       }
     }
     
-    console.log('Final parsed results:', newTestResults)
+    console.log('📊 Final parsed results count:', newTestResults.length)
     setTestResults(newTestResults)
   }
 
