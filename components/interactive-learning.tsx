@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -55,6 +55,123 @@ if __name__ == "__main__":
         print(f"Score: {score} -> Grade: {grade}")
 `
 
+interface ModalContentProps {
+  code: string
+  onCodeChange: (code: string) => void
+  output: string
+  testResults: TestResult[]
+  isRunning: boolean
+  fontSize: number
+  onClose: () => void
+  onRun: () => void
+  onReset: () => void
+  onClear: () => void
+  onIncreaseFontSize: () => void
+  onDecreaseFontSize: () => void
+  onBackdropClick: (e: React.MouseEvent) => void
+}
+
+const ModalContent = ({ 
+  code, 
+  onCodeChange, 
+  output, 
+  testResults, 
+  isRunning, 
+  fontSize, 
+  onClose, 
+  onRun, 
+  onReset, 
+  onClear, 
+  onIncreaseFontSize, 
+  onDecreaseFontSize,
+  onBackdropClick
+}: ModalContentProps) => (
+  <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-5 flex items-center justify-center z-[9999]" onClick={onBackdropClick}>
+    <div className="bg-white rounded-lg w-[90%] h-[90%] flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
+          <Button size="sm" variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </div>
+      <div className="h-96 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
+          <span className="text-sm font-medium text-gray-700">Python Editor</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={onDecreaseFontSize} className="text-xs bg-transparent">
+              <Minus className="h-3 w-3" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={onIncreaseFontSize} className="text-xs bg-transparent">
+              <Plus className="h-3 w-3" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={onReset} className="text-xs bg-transparent">
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset
+            </Button>
+            <Button size="sm" onClick={onRun} disabled={isRunning} className="text-xs">
+              {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
+              Run
+            </Button>
+          </div>
+        </div>
+        <div className="h-[calc(100%-48px)]" style={{ fontSize: `${fontSize}px` }}>
+          <PythonEditor code={code} onChange={onCodeChange} />
+        </div>
+      </div>
+      <div className="flex-1 flex min-h-0">
+        <div className="w-1/2 flex flex-col min-w-0">
+          <div className="flex items-center justify-between p-2 bg-gray-50 flex-shrink-0">
+            <span className="text-sm font-medium text-gray-700">Console Output</span>
+            <Button size="sm" variant="ghost" onClick={onClear} className="text-xs">
+              Clear
+            </Button>
+          </div>
+          <div className="h-[calc(100%-40px)] overflow-hidden">
+            <Console output={output} />
+          </div>
+        </div>
+        <div className="w-1/2 flex flex-col min-w-0">
+          <div className="p-2 bg-gray-50 flex-shrink-0">
+            <span className="text-sm font-medium text-gray-700">
+              Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
+            </span>
+          </div>
+          <div className="h-[calc(100%-40px)] overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-2 space-y-1">
+                {testResults.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Run your code to see test results...</p>
+                ) : (
+                  testResults.map((test, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center gap-2 p-2 rounded text-xs ${
+                        test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                      }`}
+                    >
+                      {test.passed ? (
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <XCircle className="h-3 w-3 text-red-600" />
+                      )}
+                      <div className="flex-1">
+                        <div className="font-medium">{test.name}</div>
+                        {test.message && <div className="text-xs opacity-75">{test.message}</div>}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)
+
 export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   const [code, setCode] = useState(STARTER_CODE)
   const [output, setOutput] = useState("")
@@ -104,96 +221,19 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
     setFontSize((prev) => Math.max(prev - 2, 10))
   }
 
-  const toggleModal = () => {
+  const toggleModal = useCallback(() => {
     setIsModalOpen(!isModalOpen)
-  }
+  }, [isModalOpen])
 
-  const ModalContent = () => (
-    <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-5 flex items-center justify-center z-[9999]" onClick={toggleModal}>
-      <div className="bg-white rounded-lg w-[90%] h-[90%] flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
-            <Button size="sm" variant="outline" onClick={toggleModal}>
-              Close
-            </Button>
-          </div>
-        </div>
-        <div className="h-96 border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
-            <span className="text-sm font-medium text-gray-700">Python Editor</span>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={decreaseFontSize} className="text-xs bg-transparent">
-                <Minus className="h-3 w-3" />
-              </Button>
-              <Button size="sm" variant="outline" onClick={increaseFontSize} className="text-xs bg-transparent">
-                <Plus className="h-3 w-3" />
-              </Button>
-              <Button size="sm" variant="outline" onClick={resetCode} className="text-xs bg-transparent">
-                <RotateCcw className="h-3 w-3 mr-1" />
-                Reset
-              </Button>
-              <Button size="sm" onClick={runPythonCode} disabled={isRunning} className="text-xs">
-                {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-                Run
-              </Button>
-            </div>
-          </div>
-          <div className="h-[calc(100%-48px)]" style={{ fontSize: `${fontSize}px` }}>
-            <PythonEditor code={code} onChange={setCode} />
-          </div>
-        </div>
-        <div className="flex-1 flex min-h-0">
-          <div className="w-1/2 flex flex-col min-w-0">
-            <div className="flex items-center justify-between p-2 bg-gray-50 flex-shrink-0">
-              <span className="text-sm font-medium text-gray-700">Console Output</span>
-              <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
-                Clear
-              </Button>
-            </div>
-            <div className="h-[calc(100%-40px)] overflow-hidden">
-              <Console output={output} />
-            </div>
-          </div>
-          <div className="w-1/2 flex flex-col min-w-0">
-            <div className="p-2 bg-gray-50 flex-shrink-0">
-              <span className="text-sm font-medium text-gray-700">
-                Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
-              </span>
-            </div>
-            <div className="h-[calc(100%-40px)] overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="p-2 space-y-1">
-                  {testResults.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Run your code to see test results...</p>
-                  ) : (
-                    testResults.map((test, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-2 p-2 rounded text-xs ${
-                          test.passed ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
-                        }`}
-                      >
-                        {test.passed ? (
-                          <CheckCircle className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <XCircle className="h-3 w-3 text-red-600" />
-                        )}
-                        <div className="flex-1">
-                          <div className="font-medium">{test.name}</div>
-                          {test.message && <div className="text-xs opacity-75">{test.message}</div>}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  const handleCodeChange = useCallback((newCode: string) => {
+    setCode(newCode)
+  }, [])
+
+  const handleModalBackdropClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsModalOpen(false)
+    }
+  }, [])
 
   return (
     <>
@@ -225,7 +265,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
             </div>
           </div>
           <div className="h-[calc(100%-48px)]" style={{ fontSize: `${fontSize}px` }}>
-            <PythonEditor code={code} onChange={setCode} />
+            <PythonEditor code={code} onChange={handleCodeChange} />
           </div>
         </div>
         <div className="h-60 flex overflow-hidden">
@@ -277,7 +317,24 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
           </div>
         </div>
       </div>
-      {isModalOpen && typeof document !== 'undefined' && createPortal(<ModalContent />, document.body)}
+      {isModalOpen && typeof document !== 'undefined' && createPortal(
+        <ModalContent 
+          code={code}
+          onCodeChange={handleCodeChange}
+          output={output}
+          testResults={testResults}
+          isRunning={isRunning}
+          fontSize={fontSize}
+          onClose={toggleModal}
+          onRun={runPythonCode}
+          onReset={resetCode}
+          onClear={clearConsole}
+          onIncreaseFontSize={increaseFontSize}
+          onDecreaseFontSize={decreaseFontSize}
+          onBackdropClick={handleModalBackdropClick}
+        />, 
+        document.body
+      )}
     </>
   )
 }
