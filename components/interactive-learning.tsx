@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Play, RotateCcw, CheckCircle, XCircle, Loader2, Maximize2, Plus, Minus } from "lucide-react"
@@ -108,8 +109,8 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   }
 
   const ModalContent = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={toggleModal}>
-      <div className="bg-white rounded-lg w-[90%] h-[90%] flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-[9999]" onClick={toggleModal}>
+      <div className="bg-white rounded-lg w-[90%] h-[90%] flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
@@ -143,28 +144,28 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
           </div>
         </div>
         <div className="flex-1 flex min-h-0">
-          <div className="w-1/2 border-r border-gray-200 flex flex-col min-w-0">
-            <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+          <div className="w-1/2 flex flex-col min-w-0">
+            <div className="flex items-center justify-between p-2 bg-gray-50 flex-shrink-0">
               <span className="text-sm font-medium text-gray-700">Console Output</span>
               <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
                 Clear
               </Button>
             </div>
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-[calc(100%-40px)] overflow-hidden">
               <Console output={output} />
             </div>
           </div>
           <div className="w-1/2 flex flex-col min-w-0">
-            <div className="p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+            <div className="p-2 bg-gray-50 flex-shrink-0">
               <span className="text-sm font-medium text-gray-700">
                 Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
               </span>
             </div>
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-[calc(100%-40px)] overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-1">
                   {testResults.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Run your code to see test results</p>
+                    <p className="text-sm text-gray-500 italic">Run your code to see test results...</p>
                   ) : (
                     testResults.map((test, index) => (
                       <div
@@ -196,7 +197,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
 
   return (
     <>
-      <div className="h-[600px] flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex flex-col overflow-hidden">
         <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
           <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
         </div>
@@ -227,25 +228,25 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
             <PythonEditor code={code} onChange={setCode} />
           </div>
         </div>
-        <div className="flex-1 flex min-h-0 overflow-hidden">
-          <div className="w-1/2 border-r border-gray-200 flex flex-col min-w-0">
-            <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+        <div className="h-48 flex overflow-hidden">
+          <div className="w-1/2 flex flex-col min-w-0">
+            <div className="flex items-center justify-between p-2 bg-gray-50 flex-shrink-0">
               <span className="text-sm font-medium text-gray-700">Console Output</span>
               <Button size="sm" variant="ghost" onClick={clearConsole} className="text-xs">
                 Clear
               </Button>
             </div>
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-[calc(100%-40px)] overflow-hidden">
               <Console output={output} />
             </div>
           </div>
           <div className="w-1/2 flex flex-col min-w-0">
-            <div className="p-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+            <div className="p-2 bg-gray-50 flex-shrink-0">
               <span className="text-sm font-medium text-gray-700">
                 Test Results ({testResults.filter((t) => t.passed).length}/{testResults.length} passed)
               </span>
             </div>
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-[calc(100%-40px)] overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="p-2 space-y-1">
                   {testResults.length === 0 ? (
@@ -276,7 +277,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
           </div>
         </div>
       </div>
-      {isModalOpen && <ModalContent />}
+      {isModalOpen && typeof document !== 'undefined' && createPortal(<ModalContent />, document.body)}
     </>
   )
 }
