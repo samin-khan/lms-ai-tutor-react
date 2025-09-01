@@ -490,7 +490,7 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
         <p className="text-gray-600 text-lg">How can I help you today?</p>
       </div>
 
-      <div className={`flex gap-4 transition-all duration-300 ${showInteractiveLearning ? "h-[600px]" : ""} w-full`}>
+      <div className={`flex gap-4 transition-all duration-300 ${showInteractiveLearning ? "h-[700px]" : ""} w-full`}>
         {/* Chat Card */}
         <Card
           className={`flex flex-col bg-stone-50 border-stone-200 transition-all duration-300 ${showInteractiveLearning ? "w-1/2" : "w-full"} min-w-0`}
@@ -627,7 +627,6 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
           <Card className="w-1/2 bg-white border-stone-200 animate-in slide-in-from-right duration-300 min-w-0">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-medium text-gray-800">Interactive Learning</CardTitle>
-              <CardDescription className="text-gray-600">Practice coding while getting AI assistance</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <InteractiveLearning onUpdate={handleInteractiveLearningUpdate} />

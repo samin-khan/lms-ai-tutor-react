@@ -198,10 +198,10 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   return (
     <>
       <div className="flex flex-col overflow-hidden w-full">
-        <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
+        <div className="p-3 bg-blue-50 border-b border-blue-200 flex-shrink-0">
           <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
         </div>
-        <div className="h-80 border-b border-gray-200 flex-shrink-0">
+        <div className="h-96 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
             <span className="text-sm font-medium text-gray-700">Python Editor</span>
             <div className="flex gap-2">
@@ -228,7 +228,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
             <PythonEditor code={code} onChange={setCode} />
           </div>
         </div>
-        <div className="h-48 flex overflow-hidden">
+        <div className="h-60 flex overflow-hidden">
           <div className="w-1/2 flex flex-col min-w-0">
             <div className="flex items-center justify-between p-2 bg-gray-50 flex-shrink-0">
               <span className="text-sm font-medium text-gray-700">Console Output</span>
