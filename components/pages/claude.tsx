@@ -624,9 +624,9 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
         </Card>
 
         {showInteractiveLearning && (
-          <Card className="w-1/2 bg-white border-stone-200 animate-in slide-in-from-right duration-300 min-w-0">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-medium text-gray-800">Interactive Learning</CardTitle>
+          <Card className="w-1/2 bg-white border-stone-200 animate-in slide-in-from-right duration-300 min-w-0 gap-0 pt-0">
+            <CardHeader className="pb-1 pt-3">
+              <CardTitle className="text-xl font-medium text-gray-800">Interactive Learning (Beta)</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <InteractiveLearning onUpdate={handleInteractiveLearningUpdate} />

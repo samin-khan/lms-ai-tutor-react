@@ -198,7 +198,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   return (
     <>
       <div className="flex flex-col overflow-hidden w-full">
-        <div className="p-3 bg-blue-50 border-b border-blue-200 flex-shrink-0">
+        <div className="px-3 py-2 bg-blue-50 border-b border-blue-200 flex-shrink-0">
           <h3 className="font-medium text-blue-900">Assignment: Grade Calculator</h3>
         </div>
         <div className="h-96 border-b border-gray-200 flex-shrink-0">
