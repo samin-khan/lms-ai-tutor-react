@@ -111,7 +111,12 @@ const ModalContent = ({
               <RotateCcw className="h-3 w-3 mr-1" />
               Reset
             </Button>
-            <Button size="sm" onClick={onRun} disabled={isRunning} className="text-xs">
+            <Button
+              size="sm"
+              onClick={onRun}
+              disabled={isRunning}
+              className="text-xs"
+            >
               {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
               {isRunning ? "Running..." : "Run"}
             </Button>
@@ -184,30 +189,34 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   const { runPython, stdout, stderr, isLoading, isRunning } = usePython()
 
   // Combine stdout and stderr for output display
-  const output = stdout + (stderr ? `\nError: ${stderr}` : "")
+  const [output, setOutput] = useState("")
 
+  
   useEffect(() => {
     onUpdate(code, output, testResults, runAttempts)
   }, [code, output, testResults, runAttempts, onUpdate])
+
 
   const runPythonCode = async () => {
     setRunAttempts((prev) => prev + 1)
 
     try {
-      // First, run the user's code
-      await runPython(code)
+      setOutput("Running...")
+      setTestResults([])
       
+      // await runPython(code)
+      await runUnitTests(code)
+      setOutput(stdout + (stderr ? `\nError: ${stderr}` : ""))
+
       // Then run the unit tests
-      await runUnitTests()
     } catch (error) {
       console.error('Error running Python code:', error)
     }
   }
 
-  const runUnitTests = async () => {
-    // Clear previous test results
-    setTestResults([])
-    
+  // const runUnitTests = async () => {
+
+  const runUnitTests = async (code: string) => {    
     // Create a comprehensive test script that stores all results
     const testScript = `
 # Initialize test results storage
@@ -251,31 +260,27 @@ if function_exists:
                 'expected': expected,
                 'error': True
             }
-    
+
+    # Print results in a format we can easily parse
+    print("=== TEST_RESULTS_START ===")
+    for test_name, data in test_results.items():
+        status = "ERROR" if data['error'] else "SUCCESS"
+        print(f"{test_name}|{status}|{data['result']}|{data['expected']}")
+    print("=== TEST_RESULTS_END ===")
+
 else:
     print("Cannot run tests - function not implemented")
 `
-// # Print results in a format we can easily parse
-// print("=== TEST_RESULTS_START ===")
-// for test_name, data in test_results.items():
-//     status = "ERROR" if data['error'] else "SUCCESS"
-//     print(f"{test_name}|{status}|{data['result']}|{data['expected']}")
-// print("=== TEST_RESULTS_END ===")
 
     try {
-      await runPython(testScript)
-      
-      // Parse the results from stdout
-      setTimeout(() => {
-        parseTestResultsFromOutput()
-      }, 100)
-      
+      await runPython(code + `\n` + testScript)
+      await parseTestResultsFromOutput()
     } catch (error) {
       console.error('Error running unit tests:', error)
     }
   }
 
-  const parseTestResultsFromOutput = () => {
+  const parseTestResultsFromOutput = async () => {
     const newTestResults: TestResult[] = []
     const lines = stdout.split('\n')
     
@@ -404,6 +409,8 @@ else:
       setIsModalOpen(false)
     }
   }, [])
+
+
 
   return (
     <>
