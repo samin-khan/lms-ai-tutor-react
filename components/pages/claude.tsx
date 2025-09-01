@@ -481,8 +481,8 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center py-6">
+    <div className="w-full max-w-none space-y-4">
+      <div className="text-center py-4">
         <div className="flex items-center justify-center gap-3 mb-4">
           <Image src="/claude-icon.png" alt="Claude AI" width={32} height={32} />
           <h1 className="text-3xl font-medium text-gray-800">Good afternoon, Student</h1>
@@ -490,10 +490,10 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
         <p className="text-gray-600 text-lg">How can I help you today?</p>
       </div>
 
-      <div className={`flex gap-6 transition-all duration-300 ${showInteractiveLearning ? "h-[600px]" : ""}`}>
+      <div className={`flex gap-4 transition-all duration-300 ${showInteractiveLearning ? "h-[600px]" : ""} w-full`}>
         {/* Chat Card */}
         <Card
-          className={`flex flex-col bg-stone-50 border-stone-200 transition-all duration-300 ${showInteractiveLearning ? "w-1/2" : "w-full"}`}
+          className={`flex flex-col bg-stone-50 border-stone-200 transition-all duration-300 ${showInteractiveLearning ? "w-1/2" : "w-full"} min-w-0`}
         >
           <CardContent className="flex flex-col gap-4 p-0 bg-stone-50">
             <div className="h-[500px] flex flex-col px-6">
@@ -624,7 +624,7 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
         </Card>
 
         {showInteractiveLearning && (
-          <Card className="w-1/2 bg-white border-stone-200 animate-in slide-in-from-right duration-300">
+          <Card className="w-1/2 bg-white border-stone-200 animate-in slide-in-from-right duration-300 min-w-0">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-medium text-gray-800">Interactive Learning</CardTitle>
               <CardDescription className="text-gray-600">Practice coding while getting AI assistance</CardDescription>
