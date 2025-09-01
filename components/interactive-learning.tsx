@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { usePython } from "react-py"
 import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -112,7 +113,7 @@ const ModalContent = ({
             </Button>
             <Button size="sm" onClick={onRun} disabled={isRunning} className="text-xs">
               {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-              Run
+              {isRunning ? "Running..." : "Run"}
             </Button>
           </div>
         </div>
@@ -174,41 +175,210 @@ const ModalContent = ({
 
 export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   const [code, setCode] = useState(STARTER_CODE)
-  const [output, setOutput] = useState("")
   const [testResults, setTestResults] = useState<TestResult[]>([])
-  const [isRunning, setIsRunning] = useState(false)
   const [runAttempts, setRunAttempts] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [fontSize, setFontSize] = useState(14)
+
+  // Use the usePython hook from react-py
+  const { runPython, stdout, stderr, isLoading, isRunning } = usePython()
+
+  // Combine stdout and stderr for output display
+  const output = stdout + (stderr ? `\nError: ${stderr}` : "")
 
   useEffect(() => {
     onUpdate(code, output, testResults, runAttempts)
   }, [code, output, testResults, runAttempts, onUpdate])
 
   const runPythonCode = async () => {
-    setIsRunning(true)
     setRunAttempts((prev) => prev + 1)
 
     try {
-      const results = await simulatePythonExecution(code)
-      setOutput(results.output)
-      setTestResults(results.testResults)
+      // First, run the user's code
+      await runPython(code)
+      
+      // Then run the unit tests
+      await runUnitTests()
     } catch (error) {
-      setOutput(`Error: ${error}`)
-      setTestResults([])
-    } finally {
-      setIsRunning(false)
+      console.error('Error running Python code:', error)
     }
   }
 
+  const runUnitTests = async () => {
+    // Clear previous test results
+    setTestResults([])
+    
+    // Create a comprehensive test script that stores all results
+    const testScript = `
+# Initialize test results storage
+test_results = {}
+
+# Check if function exists
+try:
+    calculate_grade
+    function_exists = True
+except NameError:
+    function_exists = False
+    print("Function calculate_grade not found")
+
+if function_exists:
+    # Define test cases
+    test_cases = [
+        ("test_perfect_score", 100, "A"),
+        ("test_a_grade", 95, "A"),
+        ("test_b_grade", 85, "B"),
+        ("test_c_grade", 75, "C"),
+        ("test_d_grade", 65, "D"),
+        ("test_f_grade", 45, "F"),
+        ("test_boundary_90", 90, "A"),
+        ("test_boundary_80", 80, "B"),
+        ("test_invalid_negative", -10, "ERROR"),
+        ("test_invalid_over_100", 110, "ERROR")
+    ]
+    
+    # Run each test
+    for test_name, input_score, expected in test_cases:
+        try:
+            result = calculate_grade(input_score)
+            test_results[test_name] = {
+                'result': str(result),
+                'expected': expected,
+                'error': False
+            }
+        except Exception as e:
+            test_results[test_name] = {
+                'result': str(e),
+                'expected': expected,
+                'error': True
+            }
+    
+else:
+    print("Cannot run tests - function not implemented")
+`
+// # Print results in a format we can easily parse
+// print("=== TEST_RESULTS_START ===")
+// for test_name, data in test_results.items():
+//     status = "ERROR" if data['error'] else "SUCCESS"
+//     print(f"{test_name}|{status}|{data['result']}|{data['expected']}")
+// print("=== TEST_RESULTS_END ===")
+
+    try {
+      await runPython(testScript)
+      
+      // Parse the results from stdout
+      setTimeout(() => {
+        parseTestResultsFromOutput()
+      }, 100)
+      
+    } catch (error) {
+      console.error('Error running unit tests:', error)
+    }
+  }
+
+  const parseTestResultsFromOutput = () => {
+    const newTestResults: TestResult[] = []
+    const lines = stdout.split('\n')
+    
+    console.log('Full stdout:', stdout)
+    console.log('Lines array:', lines)
+    
+    // Find the test results section
+    const startIndex = lines.findIndex(line => line.trim().includes('TEST_RESULTS_START'))
+    const endIndex = lines.findIndex(line => line.trim().includes('TEST_RESULTS_END'))
+    
+    console.log(`Found start index: ${startIndex}, end index: ${endIndex}`)
+    
+    if (startIndex !== -1 && endIndex !== -1) {
+      // Parse each test result line
+      for (let i = startIndex + 1; i < endIndex; i++) {
+        const line = lines[i].trim()
+        console.log(`Processing line ${i}: "${line}"`)
+        
+        if (line && line.includes('|')) {
+          const parts = line.split('|')
+          console.log(`Split parts:`, parts)
+          
+          if (parts.length >= 4) {
+            const [testName, status, result, expected] = parts
+            
+            let passed = false
+            let message = undefined
+            
+            if (status === 'ERROR') {
+              passed = expected === 'ERROR'
+              message = passed ? undefined : `Expected '${expected}', got error: ${result}`
+            } else {
+              passed = result === expected
+              message = passed ? undefined : `Expected '${expected}', got '${result}'`
+            }
+            
+            newTestResults.push({
+              name: testName,
+              passed,
+              message
+            })
+            
+            console.log(`✓ Test ${testName}: expected '${expected}', got '${result}', passed: ${passed}`)
+          }
+        }
+      }
+    } else {
+      console.log('Could not find test results delimiters in output')
+      // Still try to find individual test result lines without delimiters
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (trimmed.includes('|') && (trimmed.includes('SUCCESS') || trimmed.includes('ERROR'))) {
+          const parts = trimmed.split('|')
+          if (parts.length >= 4) {
+            const [testName, status, result, expected] = parts
+            
+            let passed = false
+            let message = undefined
+            
+            if (status === 'ERROR') {
+              passed = expected === 'ERROR'
+              message = passed ? undefined : `Expected '${expected}', got error: ${result}`
+            } else {
+              passed = result === expected
+              message = passed ? undefined : `Expected '${expected}', got '${result}'`
+            }
+            
+            newTestResults.push({
+              name: testName,
+              passed,
+              message
+            })
+            
+            console.log(`✓ Fallback Test ${testName}: expected '${expected}', got '${result}', passed: ${passed}`)
+          }
+        }
+      }
+      
+      // Final fallback if no tests found
+      if (newTestResults.length === 0) {
+        UNIT_TESTS.forEach(test => {
+          newTestResults.push({
+            name: test.name,
+            passed: false,
+            message: "Test execution failed - check console for errors"
+          })
+        })
+      }
+    }
+    
+    console.log('Final parsed results:', newTestResults)
+    setTestResults(newTestResults)
+  }
+
   const clearConsole = () => {
-    setOutput("")
+    // Clear Python console output
+    runPython("")  // Clear the Python environment
     setTestResults([])
   }
 
   const resetCode = () => {
     setCode(STARTER_CODE)
-    setOutput("")
+    runPython("")  // Clear the Python environment
     setTestResults([])
     setRunAttempts(0)
   }
@@ -258,10 +428,10 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
                 <RotateCcw className="h-3 w-3 mr-1" />
                 Reset
               </Button>
-              <Button size="sm" onClick={runPythonCode} disabled={isRunning} className="text-xs">
-                {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-                Run
-              </Button>
+                          <Button size="sm" onClick={runPythonCode} disabled={isLoading || isRunning} className="text-xs">
+              {isLoading || isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
+              {isLoading ? "Loading..." : isRunning ? "Running..." : "Run"}
+            </Button>
             </div>
           </div>
           <div className="h-[calc(100%-48px)]" style={{ fontSize: `${fontSize}px` }}>
@@ -339,60 +509,6 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   )
 }
 
-async function simulatePythonExecution(code: string): Promise<{
-  output: string
-  testResults: TestResult[]
-}> {
-  await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  let output = ""
-  const testResults: TestResult[] = []
 
-  try {
-    const functionMatch = code.match(/def calculate_grade$$score$$:([\s\S]*?)(?=\n\S|\n$|$)/m)
-    if (!functionMatch) {
-      throw new Error("calculate_grade function not found")
-    }
 
-    const mainMatch = code.match(/if __name__ == "__main__":([\s\S]*?)$/m)
-    if (mainMatch) {
-      output =
-        "Score: 95 -> Grade: A\nScore: 87 -> Grade: B\nScore: 73 -> Grade: C\nScore: 65 -> Grade: D\nScore: 45 -> Grade: F\n"
-    }
-
-    for (const test of UNIT_TESTS) {
-      const result = simulateGradeFunction(test.input, code)
-      const passed = result === test.expected || (test.expected === "ERROR" && result.includes("Error"))
-
-      testResults.push({
-        name: test.name,
-        passed,
-        message: passed ? undefined : `Expected '${test.expected}', got '${result}'`,
-      })
-    }
-  } catch (error) {
-    output = `Error: ${error}`
-  }
-
-  return { output, testResults }
-}
-
-function simulateGradeFunction(score: number, code: string): string {
-  const hasErrorHandling =
-    code.includes("if") &&
-    (code.includes("< 0") || code.includes("> 100") || code.includes("invalid") || code.includes("error"))
-
-  if ((score < 0 || score > 100) && hasErrorHandling) {
-    return "Error: Invalid score"
-  }
-
-  if (score < 0 || score > 100) {
-    return "Error: Invalid score"
-  }
-
-  if (score >= 90) return "A"
-  if (score >= 80) return "B"
-  if (score >= 70) return "C"
-  if (score >= 60) return "D"
-  return "F"
-}
