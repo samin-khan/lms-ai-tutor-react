@@ -109,7 +109,7 @@ export function InteractiveLearning({ onUpdate }: InteractiveLearningProps) {
   }
 
   const ModalContent = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-[9999]" onClick={toggleModal}>
+    <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-5 flex items-center justify-center z-[9999]" onClick={toggleModal}>
       <div className="bg-white rounded-lg w-[90%] h-[90%] flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 bg-blue-50 border-b border-blue-200 flex-shrink-0">
           <div className="flex items-center justify-between">
