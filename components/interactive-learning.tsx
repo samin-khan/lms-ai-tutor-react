@@ -101,12 +101,12 @@ const ModalContent = ({
         <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
           <span className="text-sm font-medium text-gray-700">Python Editor</span>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={onDecreaseFontSize} className="text-xs bg-transparent">
+            {/* <Button size="sm" variant="outline" onClick={onDecreaseFontSize} className="text-xs bg-transparent">
               <Minus className="h-3 w-3" />
             </Button>
             <Button size="sm" variant="outline" onClick={onIncreaseFontSize} className="text-xs bg-transparent">
               <Plus className="h-3 w-3" />
-            </Button>
+            </Button> */}
             <Button size="sm" variant="outline" onClick={onReset} className="text-xs bg-transparent">
               <RotateCcw className="h-3 w-3 mr-1" />
               Reset
@@ -475,12 +475,12 @@ else:
           <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
             <span className="text-sm font-medium text-gray-700">Python Editor</span>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={decreaseFontSize} className="text-xs bg-transparent">
+              {/* <Button size="sm" variant="outline" onClick={decreaseFontSize} className="text-xs bg-transparent">
                 <Minus className="h-3 w-3" />
               </Button>
               <Button size="sm" variant="outline" onClick={increaseFontSize} className="text-xs bg-transparent">
                 <Plus className="h-3 w-3" />
-              </Button>
+              </Button> */}
               <Button size="sm" variant="outline" onClick={toggleModal} className="text-xs bg-transparent">
                 <Maximize2 className="h-3 w-3" />
               </Button>
