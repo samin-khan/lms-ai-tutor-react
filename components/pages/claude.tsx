@@ -600,7 +600,7 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
                 className={showInteractiveLearning ? "bg-accent text-accent-foreground" : "bg-white border-stone-300"}
               >
                 {showInteractiveLearning ? <X className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                <span className="ml-2">{showInteractiveLearning ? "Close" : "Test"}</span>
+                <span className="ml-2">{showInteractiveLearning ? "Close" : "Open Interactive Learning"}</span>
               </Button>
             </div>
 

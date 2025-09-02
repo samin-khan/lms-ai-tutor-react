@@ -39,7 +39,13 @@ const UNIT_TESTS = [
 
 const STARTER_CODE = `def calculate_grade(score):
     """
-    Calculate letter grade based on numeric score
+    Calculate letter grade based on numeric score. 
+    - A is 90 and above
+    - B is 80-89
+    - C is 70-79
+    - D is 60-69
+    - F is below 60
+    - ERROR if the score is negative or over 100
     Args:
         score: numeric score (0-100)
     Returns:
