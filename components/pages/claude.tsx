@@ -441,10 +441,25 @@ const HARDCODED_INTERACTION_TEMPLATE = `<!DOCTYPE html>
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);
         }
-        
+
         .variable-item.dragging {
             opacity: 0.5;
             transform: rotate(5deg);
+        }
+        
+        /* Add this new CSS for the custom drag image */
+        .drag-ghost {
+            transform: scale(0.25);
+            opacity: 0.8;
+            border: 2px solid #4f46e5;
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            pointer-events: none;
+            position: absolute;
+            top: -1000px; /* Hide it off-screen initially */
+            left: -1000px;
         }
         
         .type-slot {
@@ -620,6 +635,35 @@ const HARDCODED_INTERACTION_TEMPLATE = `<!DOCTYPE html>
         let level = 1;
         let streak = 0;
         let correctAnswers = 0;
+
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            
+            // Create a custom drag image that's half the size
+            const dragGhost = e.target.cloneNode(true);
+            dragGhost.classList.remove('dragging');
+            dragGhost.classList.add('drag-ghost');
+            dragGhost.style.transform = 'scale(0.5)';
+            
+            // Temporarily add to DOM for drag image
+            document.body.appendChild(dragGhost);
+            
+            // Set the custom drag image
+            e.dataTransfer.setDragImage(dragGhost, 
+                dragGhost.offsetWidth / 2, 
+                dragGhost.offsetHeight / 2
+            );
+            
+            // Clean up the temporary element after a brief delay
+            setTimeout(() => {
+                if (dragGhost.parentNode) {
+                    document.body.removeChild(dragGhost);
+                }
+            }, 0);
+            
+            e.dataTransfer.setData('text/plain', e.target.dataset.type);
+            e.dataTransfer.setData('application/x-index', e.target.dataset.index);
+        }
         
         function shuffleArray(array) {
             const shuffled = [...array];
@@ -1002,8 +1046,8 @@ Feel free to ask me anything or use the quick action buttons below to get starte
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center py-6">
+    <div className="w-full max-w-none space-y-4">
+      <div className="text-center py-4">
         <div className="flex items-center justify-center gap-3 mb-4">
           <Image src="/claude-icon.png" alt="Claude AI" width={32} height={32} />
           <h1 className="text-3xl font-medium text-gray-800">Good afternoon, Student</h1>
@@ -1011,12 +1055,12 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         <p className="text-gray-600 text-lg">How can I help you today?</p>
       </div>
 
-      <div className={`flex gap-6 ${showInteraction ? "h-[600px]" : ""}`}>
+      <div className={`flex gap-4 transition-all duration-300 ${showInteraction ? "h-[700px]" : ""} w-full max-w-full`}>
         <Card
-          className={`flex flex-col bg-stone-50 border-stone-200 transition-all duration-300 ${showInteraction ? "w-1/2" : "w-full"}`}
+          className={`flex flex-col bg-stone-50 border-stone-200 transition-all duration-300 ${showInteraction ? "flex-1" : "w-full"}`}
         >
           <CardContent className="flex flex-col gap-4 p-0 bg-stone-50">
-            <div className="h-[500px] flex flex-col px-6">
+            <div className={`${showInteraction ? "h-[560px]" : "h-[500px]"} flex flex-col px-6`}>
               <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
                 <div className="space-y-4 py-4">
                   {messages.map((message) => (
@@ -1111,25 +1155,16 @@ Feel free to ask me anything or use the quick action buttons below to get starte
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                onClick={handleTestInteraction}
-                variant="outline"
-                className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-              >
-                <TestTube className="h-4 w-4 mr-2" />
-                Test
-              </Button>
-              <Button
-                onClick={handleCreateInteraction}
-                disabled={isGeneratingInteraction || !inputValue.trim()}
-                variant="outline"
-                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-              >
-                <GraduationCap className="h-4 w-4 mr-2" />
-                Create Interaction
-              </Button>
               <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
                 <Send className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => showInteraction ? handleCloseInteraction() : handleTestInteraction()}
+                variant="outline"
+                className={showInteraction ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100" : "bg-green-50 border-green-200 text-green-700 hover:bg-green-100"}
+              >
+                {showInteraction ? <X className="h-4 w-4 mr-2" /> : <TestTube className="h-4 w-4 mr-2" />}
+                {showInteraction ? "Close" : "Open Interactive Learning"}
               </Button>
             </div>
 
@@ -1153,37 +1188,29 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         </Card>
 
         {showInteraction && (
-          <Card className="w-1/2 bg-white border-gray-200 relative">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-medium text-gray-800">Interactive Learning</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCloseInteraction}
-                  className="h-8 w-8 p-0 hover:bg-gray-100"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+          <Card className="flex-1 bg-white border-stone-200 animate-in slide-in-from-right duration-300">
+            <CardHeader className="pb-1 pt-3">
+              <CardTitle className="text-xl font-medium text-gray-800">Interactive Learning (Beta)</CardTitle>
             </CardHeader>
-            <CardContent className="p-0 h-[500px]">
-              {isGeneratingInteraction ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                  <p className="text-gray-600 font-medium">Building your interaction...</p>
-                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full animate-pulse"></div>
+            <CardContent className="p-0">
+              <div className="h-[640px]">
+                {isGeneratingInteraction ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    <p className="text-gray-600 font-medium">Building your interaction...</p>
+                    <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-600 rounded-full animate-pulse"></div>
+                    </div>
                   </div>
-                </div>
-              ) : interactionContent ? (
-                <iframe
-                  srcDoc={interactionContent}
-                  className="w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin"
-                  title="Interactive Learning Experience"
-                />
-              ) : null}
+                ) : interactionContent ? (
+                  <iframe
+                    srcDoc={interactionContent}
+                    className="w-full h-full border-0"
+                    sandbox="allow-scripts allow-same-origin"
+                    title="Interactive Learning Experience"
+                  />
+                ) : null}
+              </div>
             </CardContent>
           </Card>
         )}
