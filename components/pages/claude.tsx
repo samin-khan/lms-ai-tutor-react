@@ -21,30 +21,6 @@ interface Message {
   competenceLevel?: string
 }
 
-interface ModelOption {
-  id: string
-  name: string
-  description: string
-}
-
-const modelOptions: ModelOption[] = [
-  {
-    id: "claude-sonnet-4-0",
-    name: "AI Model: Medium",
-    description: "Smart, efficient model for everyday use",
-  },
-  {
-    id: "claude-opus-4-1",
-    name: "AI Model: Large",
-    description: "Powerful, large model for complex challenges",
-  },
-  {
-    id: "claude-3-5-haiku-latest",
-    name: "AI Model: Small",
-    description: "Fastest model for daily tasks",
-  },
-]
-
 const quickActions = [
   {
     id: "variables",
@@ -298,7 +274,6 @@ I need assistance with this assignment. Please ask me questions to understand wh
 }
 
 export function ClaudePage({ assignmentId }: { assignmentId?: number }) {
-  const [selectedModel, setSelectedModel] = useState("claude-sonnet-4-0")
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -368,7 +343,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, history, model: selectedModel }),
+        body: JSON.stringify({ message, history, model: "claude-sonnet-4-0" }),
       })
 
       if (!response.ok) {
@@ -561,29 +536,6 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
                 className="flex-1 bg-white border-stone-300"
                 disabled={isTyping}
               />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white border-stone-300">
-                    {modelOptions.find((m) => m.id === selectedModel)?.name || "Claude Sonnet 4"}
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  {modelOptions.map((model) => (
-                    <DropdownMenuItem
-                      key={model.id}
-                      onClick={() => setSelectedModel(model.id)}
-                      className="flex items-center justify-between p-3 cursor-pointer"
-                    >
-                      <div className="text-left">
-                        <div className="font-medium text-gray-900">{model.name}</div>
-                        <div className="text-sm text-gray-600">{model.description}</div>
-                      </div>
-                      {selectedModel === model.id && <Check className="h-4 w-4 text-blue-600" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
               <Button onClick={() => handleSendMessage(inputValue)} disabled={isTyping || !inputValue.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
