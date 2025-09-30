@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { BookOpen, FileText, GraduationCap, Menu, X } from "lucide-react"
+import { BookOpen, FileText, GraduationCap, Menu, X, BrainCircuit } from "lucide-react"
 import Image from "next/image"
 
 interface SidebarProps {
@@ -36,8 +36,8 @@ const navigationItems = [
   },
   {
     id: "claude",
-    label: "Claude AI",
-    icon: null,
+    label: "AI Tutor",
+    icon: BrainCircuit,
     description: "AI tutoring and Q&A support",
     path: "/claude",
   },
@@ -107,7 +107,7 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                   }}
                 >
                   {item.id === "claude" ? (
-                    <Image src="/claude-icon.png" alt="Claude AI" width={20} height={20} className="flex-shrink-0" />
+                    <BrainCircuit className="h-5 w-5 flex-shrink-0" />
                   ) : (
                     Icon && <Icon className="h-5 w-5 flex-shrink-0" />
                   )}

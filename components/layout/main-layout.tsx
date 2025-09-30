@@ -14,7 +14,7 @@ const sectionTitles = {
   syllabus: { title: "Course Syllabus", subtitle: "Schedule, grading, and policies" },
   assignments: { title: "Assignments", subtitle: "Current and graded assignments" },
   lectures: { title: "Lecture Notes", subtitle: "Week-by-week course content" },
-  claude: { title: "Claude AI Tutor", subtitle: "Get help with your coursework" },
+  claude: { title: "AI Tutor", subtitle: "Get help with your coursework" },
 }
 
 export function MainLayout({ children, activeSection, onSectionChange }: MainLayoutProps) {

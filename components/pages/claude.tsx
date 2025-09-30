@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Send, Code, BookOpen, Zap, ChevronDown, Check, Play, X } from "lucide-react"
+import { Send, Code, BookOpen, Zap, ChevronDown, Check, Play, X, BrainCircuit } from "lucide-react"
 import Image from "next/image"
 import { InteractiveLearning } from "@/components/interactive-learning"
 
@@ -30,17 +30,17 @@ interface ModelOption {
 const modelOptions: ModelOption[] = [
   {
     id: "claude-sonnet-4-0",
-    name: "Claude Sonnet 4",
+    name: "AI Model: Medium",
     description: "Smart, efficient model for everyday use",
   },
   {
     id: "claude-opus-4-1",
-    name: "Claude Opus 4.1",
+    name: "AI Model: Large",
     description: "Powerful, large model for complex challenges",
   },
   {
     id: "claude-3-5-haiku-latest",
-    name: "Claude Haiku 3.5",
+    name: "AI Model: Small",
     description: "Fastest model for daily tasks",
   },
 ]
@@ -304,8 +304,8 @@ export function ClaudePage({ assignmentId }: { assignmentId?: number }) {
       id: "welcome",
       type: "assistant",
       content: assignmentId
-        ? `Hello! I'm Claude, your CS101 AI tutor. I see you need help with an assignment. I'm here to guide you through understanding the concepts and requirements. Let me know what specific questions you have!`
-        : `Hello! I'm Claude, your CS101 AI tutor. I'm here to help you with programming concepts, debug your code, and answer any questions about the course material.
+        ? `Hello! I'm your CS101 AI tutor. I see you need help with an assignment. I'm here to guide you through understanding the concepts and requirements. Let me know what specific questions you have!`
+        : `Hello! I'm your CS101 AI tutor. I'm here to help you with programming concepts, debug your code, and answer any questions about the course material.
 
 I can help you with:
 • Variables and data types
@@ -484,7 +484,6 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
     <div className="w-full max-w-none space-y-4">
       <div className="text-center py-4">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Image src="/claude-icon.png" alt="Claude AI" width={32} height={32} />
           <h1 className="text-3xl font-medium text-gray-800">Good afternoon, Student</h1>
         </div>
         <p className="text-gray-600 text-lg">How can I help you today?</p>
@@ -513,7 +512,7 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
                       ) : (
                         <>
                           <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-1">
-                            <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
+                            <BrainCircuit className="h-5 w-5 flex-shrink-0" />
                           </div>
                           <div className="flex-1">
                             <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-line max-w-none">
@@ -521,13 +520,7 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
                             </div>
                             {message.type === "assistant" && message.id !== "welcome" && (
                               <div className="mt-4">
-                                <Image
-                                  src="/claude-icon.png"
-                                  alt="Claude AI"
-                                  width={24}
-                                  height={24}
-                                  className="opacity-60"
-                                />
+                                <BrainCircuit className="h-5 w-5 flex-shrink-0" />
                               </div>
                             )}
                           </div>
@@ -538,7 +531,7 @@ ${testResults.length > 0 ? testResults.map((test) => `- ${test.name}: ${test.pas
                   {isTyping && (
                     <div className="flex gap-3 items-start">
                       <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                        <Image src="/claude-icon.png" alt="Claude AI" width={16} height={16} />
+                        <BrainCircuit className="h-5 w-5 flex-shrink-0" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-1">
