@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import "./globals.css"
 import { UsetifulProvider } from "../components/usetiful-provider"
+import { PythonProviderWrapper } from "../components/python-provider"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -41,7 +42,9 @@ html {
       </head>
       <body className="antialiased">
         <UsetifulProvider />
-        {children}
+        <PythonProviderWrapper>
+          {children}
+        </PythonProviderWrapper>
       </body>
     </html>
   )
