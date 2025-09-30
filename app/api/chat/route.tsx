@@ -104,7 +104,8 @@ Analyze the user's message and classify it as ONE of these 4 levels:
 
 RESPONSE FORMAT:
 Respond with ONLY the level number and name
-Do not provide any explanation or additional text.`
+Do not provide any explanation or additional text.
+Keep your responses short and concise.`
 
 // Build enhanced system prompt with classification history from messages
 function buildEnhancedSystemPrompt(enhancedHistory: EnhancedMessage[]): string {
@@ -224,7 +225,7 @@ export async function POST(request: NextRequest) {
     console.log("Messages:", JSON.stringify(messages, null, 2))
 
     const response = await anthropic.messages.create({
-      model: model || "claude-sonnet-4-0",
+      model: model || "claude-sonnet-4-5",
       max_tokens: 1000,
       system: enhancedSystemPrompt,
       messages: messages,
