@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     console.log("Messages:", JSON.stringify(messages, null, 2))
 
     const response = await anthropic.messages.create({
-      model: model || "claude-sonnet-4-0",
+      model: model || "claude-sonnet-4-5",
       max_tokens: 1000,
       system: enhancedSystemPrompt,
       messages: messages,

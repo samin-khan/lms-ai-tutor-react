@@ -343,7 +343,7 @@ Feel free to ask me anything or use the quick action buttons below to get starte
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, history, model: "claude-sonnet-4-0" }),
+        body: JSON.stringify({ message, history, model: "claude-sonnet-4-5" }),
       })
 
       if (!response.ok) {
